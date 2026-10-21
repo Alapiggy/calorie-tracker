@@ -1,0 +1,13 @@
+# 构建与工具产物
+build/
+tmp/
+*.log
+
+# 编辑器
+.vscode/
+.idea/
+.DS_Store
+
+# 本地文件
+*.local
+.env

@@ -1,0 +1,1724 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>每日热量计算器 · 云端版</title>
+<!--
+  云服务 SDK 内联（而非走 CDN）：
+  Edge 等浏览器的「跟踪防护」会拦截第三方 CDN 脚本访问 storage，
+  导致 SDK 拿不到 token 存储、登录流程静默失败。内联后脚本与页面同源，不再受影响。
+-->
+<script>
+var WorkBuddyCloud=(()=>{var ne=Object.defineProperty;var Et=Object.getOwnPropertyDescriptor;var xt=Object.getOwnPropertyNames;var kt=Object.prototype.hasOwnProperty;var a=(r,e)=>ne(r,"name",{value:e,configurable:!0});var vt=(r,e)=>{for(var t in e)ne(r,t,{get:e[t],enumerable:!0})},Pt=(r,e,t,s)=>{if(e&&typeof e=="object"||typeof e=="function")for(let n of xt(e))!kt.call(r,n)&&n!==t&&ne(r,n,{get:()=>e[n],enumerable:!(s=Et(e,n))||s.enumerable});return r};var _t=r=>Pt(ne({},"__esModule",{value:!0}),r);var Qt={};vt(Qt,{AuthModule:()=>D,CLOUD_MODULE_PATHS:()=>A,CLOUD_PATH_PREFIX:()=>I,CloudOpenAIError:()=>x,CloudStoragePathError:()=>b,DEFAULT_SIGNED_URL_TTL_SECONDS:()=>pe,LlmModule:()=>F,MAX_SIGNED_URL_TTL_SECONDS:()=>me,PUBLISHABLE_KEY_HEADER:()=>ge,RUNTIME_STORAGE_BUCKET:()=>q,WorkBuddyCloudClient:()=>re,WorkBuddyCloudConfigError:()=>_,WorkBuddyDatabaseModule:()=>G,WorkBuddyStorageBucket:()=>H,WorkBuddyStorageDownload:()=>ee,WorkBuddyStorageModule:()=>te,anonymousTokenProvider:()=>ie,createMemoryStorage:()=>we,createWorkBuddyCloud:()=>wt,getModelCapability:()=>Pe,getModelDisplayName:()=>ve,shouldClearCredentials:()=>St});var _=class extends Error{static{a(this,"WorkBuddyCloudConfigError")}constructor(e){super(e),this.name="WorkBuddyCloudConfigError"}};var Tt=/^wbpk_/;function Ue(r,e){if(typeof r!="string"||r.trim()==="")throw new _(`${e} is required and must be a non-empty string.`);let t=r.trim(),s;try{s=new URL(t)}catch{throw new _(`${e} must be an absolute URL, received: ${t}`)}if(s.protocol!=="https:"&&s.protocol!=="http:")throw new _(`${e} must use http(s), received protocol: ${s.protocol}`);return t.replace(/\/+$/,"")}a(Ue,"normalizeHttpUrl");function Ot(r){if(r!=null&&r!=="")return Ue(r,"endpoint");let e=globalThis.location?.origin;if(typeof e!="string"||e==="")throw new _("endpoint is required outside browsers (no location.origin to fall back to).");return e.replace(/\/+$/,"")}a(Ot,"resolveEndpoint");function At(r){if(typeof r!="string"||r.trim()==="")throw new _("publishableKey is required and must be a non-empty string.");let e=r.trim();if(!Tt.test(e))throw new _('publishableKey must start with "wbpk_".');return e}a(At,"normalizePublishableKey");function Rt(r){if(r)return r;if(typeof globalThis.fetch!="function")throw new _("Global fetch is unavailable in this runtime; pass options.fetch explicitly.");return globalThis.fetch.bind(globalThis)}a(Rt,"resolveFetch");function Le(r){if(!r||typeof r!="object")throw new _("createWorkBuddyCloud requires publishableKey.");return Object.freeze({endpoint:Ot(r.endpoint),oauthRelayBaseUrl:r.oauthRelayBaseUrl?Ue(r.oauthRelayBaseUrl,"oauthRelayBaseUrl"):"",publishableKey:At(r.publishableKey),fetch:Rt(r.fetch)})}a(Le,"resolveRuntimeConfig");var ge="x-wb-webapp-access-key";function ye(r,e){return async(t,s)=>{let n=new Headers(s?.headers);if(n.set(ge,r.publishableKey),!n.has("Authorization")){let i=await e();i&&n.set("Authorization",`Bearer ${i}`)}return r.fetch(t,{...s,headers:n})}}a(ye,"createCloudFetch");var ie=a(()=>Promise.resolve(void 0),"anonymousTokenProvider");var I="/.cloud",A=Object.freeze({auth:`${I}/auth`,database:`${I}/database/rest`,storage:`${I}/storage`,llm:`${I}/llm`});var $t="workbuddy-cloud.pkce.workbuddy.",Ut="workbuddy-cloud.pkce-done.workbuddy.";function Ce(r){let e="";for(let t of r)e+=String.fromCharCode(t);return btoa(e).replace(/\+/g,"-").replace(/\//g,"_").replace(/=+$/,"")}a(Ce,"base64UrlEncode");function Ie(){let r=globalThis.crypto;return typeof r?.getRandomValues=="function"&&typeof r?.subtle?.digest=="function"&&typeof globalThis.btoa=="function"}a(Ie,"hasWebCrypto");function je(){let r=new Uint8Array(32);return globalThis.crypto.getRandomValues(r),Ce(r)}a(je,"createCodeVerifier");async function De(r){let e=new TextEncoder().encode(r),t=await globalThis.crypto.subtle.digest("SHA-256",e);return Ce(new Uint8Array(t))}a(De,"computeS256Challenge");var oe=class{static{a(this,"WorkBuddyPkceStore")}verifierKey;consumedKey;constructor(e){this.verifierKey=$t+e,this.consumedKey=Ut+e}usable(){let e=this.storage();if(!e)return!1;try{let t=`${this.verifierKey}.probe`;return e.setItem(t,"1"),e.removeItem(t),!0}catch{return!1}}saveVerifier(e){try{let t=this.storage();return t?(t.setItem(this.verifierKey,e),t.removeItem(this.consumedKey),!0):!1}catch{return!1}}readVerifier(){try{return this.storage()?.getItem(this.verifierKey)??null}catch{return null}}clearVerifier(){try{this.storage()?.removeItem(this.verifierKey)}catch{}}markConsumed(e){try{this.storage()?.setItem(this.consumedKey,e)}catch{}}isConsumed(e){try{return!!e&&this.storage()?.getItem(this.consumedKey)===e}catch{return!1}}storage(){try{return globalThis.sessionStorage??null}catch{return null}}};var w={signUp:"/v1/signup",signIn:"/v1/signin",signInWithProvider:"/v1/signin/with/provider",token:"/v1/token",loginWechat:"/v1/login-wechat",loginWechatWeb:"/v1/login-wechat-web",loginWorkBuddy:"/v1/login-workbuddy",signOut:"/v1/user/signout",userMe:"/v1/user/me",verification:"/v1/verification",verificationVerify:"/v1/verification/verify",resetPassword:"/v1/reset",sudo:"/v1/user/sudo",userPassword:"/v1/user/password"};function be(r,e){let t=r??{},s=typeof t.access_token=="string"?t.access_token:"";if(!s)throw It("response has no access_token");let n=typeof t.refresh_token=="string"?t.refresh_token:"",i=typeof t.expires_in=="number"?t.expires_in:0;return{accessToken:s,refreshToken:n,expiresAt:e+i*1e3,user:Lt(t)}}a(be,"parseSession");function Lt(r){let e=r.is_anonymous===!0;return{id:typeof r.sub=="string"?r.sub:"",name:T(r.name),avatarUrl:T(r.avatar_url),isAnonymous:e,raw:r}}a(Lt,"userFromSessionPayload");function Ne(r){let e=r??{},t=typeof e.sub=="string"?e.sub:typeof e.uid=="string"?e.uid:"",s=e.user_metadata??{};return{id:t,email:T(e.email)??T(s.email),phone:T(e.phone_number)??T(e.phone),name:T(e.name),avatarUrl:T(e.avatar_url),isAnonymous:e.is_anonymous===!0||e.scope==="anonymous",raw:e}}a(Ne,"parseUser");function T(r){return typeof r=="string"&&r!==""?r:void 0}a(T,"pickString");function Fe(r,e){let t=e??{},s=typeof t.error=="string"?t.error:void 0,n=T(t.error_description)??T(t.message)??T(t.msg)??`HTTP ${r}`;return{kind:Ct(r,s),message:n,status:r,code:s,cause:e}}a(Fe,"normalizeHttpError");function Ct(r,e){if(e==="invalid_grant")return"unauthenticated";switch(r){case 400:return"invalid-request";case 401:return"unauthenticated";case 403:return"permission-denied";case 404:return"not-found";case 429:return"rate-limited";case 501:return"unimplemented";case 503:return"backend-unavailable";default:return r>=500?"backend-unavailable":"unknown"}}a(Ct,"errorKind");function W(r){return{kind:"network",message:`request failed before a response was received: ${r instanceof Error?r.message:String(r)}`,status:0,cause:r}}a(W,"normalizeNetworkError");function It(r){let e=new Error(`workbuddy-cloud auth: ${r}`);return e.kind="unknown",e.status=0,e}a(It,"sessionShapeError");var ae=class{static{a(this,"SessionManager")}store;refresh;emit;isCredentialsRejected;now;inflight=null;signOutEpoch=0;lastFailure=null;constructor(e){this.store=e.store,this.refresh=e.refresh,this.emit=e.emit,this.isCredentialsRejected=e.isCredentialsRejected,this.now=e.now??Date.now}peek(){return this.store.read()}async ensure(){let e=this.store.read();return e?this.isExpiring(e)?e.refreshToken?this.refreshOnce(e):this.abandon():e:null}async forceRefresh(){let e=this.store.read();return e?.refreshToken?this.refreshOnce(e,{ignoreCooldown:!0}):null}commitSignIn(e){return this.lastFailure=null,this.store.write(e),this.emit("SIGNED_IN",e),e}commitUserUpdate(e){return this.store.write(e),this.emit("USER_UPDATED",e),e}clear(){this.signOutEpoch+=1,this.lastFailure=null,this.inflight=null,this.store.clear(),this.emit("SIGNED_OUT",null)}isExpiring(e){return typeof e.expiresAt!="number"?!0:e.expiresAt-this.now()<9e4}refreshOnce(e,t={}){if(this.inflight)return this.inflight;if(!t.ignoreCooldown&&this.inCooldown(e.refreshToken))return Promise.resolve(null);let s=this.doRefresh(e).finally(()=>{this.inflight=null});return this.inflight=s,s}inCooldown(e){let t=this.lastFailure;return t!==null&&t.token===e&&this.now()-t.at<6e4}async doRefresh(e){let t=this.signOutEpoch,s=e.refreshToken,n;try{n=await this.refresh(s)}catch(o){return this.onRefreshFailed(s,o)}if(this.signOutEpoch!==t)return this.store.clear(),null;let i=this.store.read();return i&&i.refreshToken!==s?i:(this.lastFailure=null,this.store.write(n),this.emit("TOKEN_REFRESHED",n),n)}onRefreshFailed(e,t){return this.isCredentialsRejected(t)?this.abandon():(this.lastFailure={token:e,at:this.now()},null)}abandon(){return this.store.clear(),this.lastFailure=null,this.emit("SIGNED_OUT",null),null}};var jt="workbuddy-cloud.session.";function we(){let r=new Map;return{getItem:a(e=>r.get(e)??null,"getItem"),setItem:a((e,t)=>{r.set(e,t)},"setItem"),removeItem:a(e=>{r.delete(e)},"removeItem")}}a(we,"createMemoryStorage");function Be(r){if(r)return r;try{let e="__workbuddy_probe__";return globalThis.localStorage.setItem(e,"1"),globalThis.localStorage.removeItem(e),globalThis.localStorage}catch{return we()}}a(Be,"resolveStorage");var ce=class{static{a(this,"SessionStore")}storage;key;constructor(e,t){this.storage=e,this.key=jt+t}read(){let e;try{e=this.storage.getItem(this.key)}catch{return null}if(!e)return null;try{let t=JSON.parse(e);return Dt(t)?t:this.discard()}catch{return this.discard()}}write(e){try{this.storage.setItem(this.key,JSON.stringify(e))}catch{}}clear(){try{this.storage.removeItem(this.key)}catch{}}discard(){return this.clear(),null}};function Dt(r){if(!r||typeof r!="object")return!1;let e=r;return typeof e.accessToken=="string"&&e.accessToken!==""&&typeof e.refreshToken=="string"&&typeof e.expiresAt=="number"&&!!e.user&&typeof e.user=="object"}a(Dt,"isStoredSession");function j(r,e){let t=r.email??"",s=r.phone??"";return!!t==!!s?{data:null,error:{kind:"invalid-request",message:`${e} requires exactly one of email or phone`,status:0}}:{data:t?{kind:"email",value:t,username:t}:{kind:"phone",value:s,username:Nt(s)},error:null}}a(j,"resolveAuthIdentifier");function Nt(r){let t=r.replace(/\D/g,"");return t.startsWith("0086")?t=t.slice(4):t.startsWith("86")&&t.length===13&&(t=t.slice(2)),/^1\d{10}$/.test(t)?`+86 ${t}`:r}a(Nt,"normalizePhone");var He=200;function We(r,e){let t=Array.from(r);return t.length<=e?r:`${t.slice(0,e).join("")}\u2026`}a(We,"truncateMessage");function Se(r){let e=r.get("error");if(!e)return null;let t=r.get("error_description"),s=t?`oauth provider rejected the request: ${e}: ${t}`:`oauth provider rejected the request: ${e}`;return We(s,He)}a(Se,"oauthProviderRejectMessage");var D=class{static{a(this,"AuthModule")}fetch;baseUrl;sessions;storage;oauthRelayBaseUrl;workBuddyPkce;workBuddyExchanges=new Map;listeners=new Map;nextListenerId=1;constructor(e,t,s={}){this.fetch=t,this.baseUrl=`${e.endpoint}${A.auth}`,this.oauthRelayBaseUrl=e.oauthRelayBaseUrl,this.storage=Be(s.storage),this.workBuddyPkce=new oe(e.publishableKey),this.sessions=new ae({store:new ce(this.storage,e.publishableKey),refresh:a(n=>this.exchangeRefreshHandle(n),"refresh"),emit:a((n,i)=>this.notify(n,i),"emit"),isCredentialsRejected:a(n=>ue(n)&&Me(n),"isCredentialsRejected")})}async getAccessToken(){return(await this.sessions.ensure())?.accessToken}async signInWithPassword(e){if(!e.password)return h(p("signInWithPassword requires a password"));let t=j(e,"signInWithPassword");return t.error?h(t.error):this.postForSession(w.signIn,{username:t.data.username,password:e.password})}async signInWithWechat(e,t){return e?t?this.postForSession(w.loginWechat,{code:e,appid:t}):h(p("signInWithWechat requires appid")):h(p("signInWithWechat requires code"))}async signUp(e){let t=j(e,"signUp");if(t.error)return h(t.error);if(!e.verificationToken)return h(p("signUp requires a verificationToken; run sendOtp + verifyOtp first (the provider rejects username+password-only signup)"));let s={verification_token:e.verificationToken};return t.data.kind==="phone"?s.phone_number=t.data.username:s.email=t.data.username,e.password&&(s.password=e.password),this.postForSession(w.signUp,s)}async sendOtp(e){let t=j(e,"sendOtp");if(t.error)return h(t.error);let s={};t.data.kind==="phone"?(s.phone_number=t.data.username,s.target="ANY"):(s.email=t.data.username,s.usage="email",e.emailRedirectTo&&(s.email_redirect_to=e.emailRedirectTo));let n=await this.request(w.verification,{method:"POST",body:s});if(n.error)return h(n.error);let i=n.data??{},o=typeof i.verification_id=="string"?i.verification_id:"";return o?S({verificationId:o,isExistingUser:i.is_user===!0}):h(p("provider returned no verification_id"))}async signInWithOtp(e){let t=j(e,"signInWithOtp");if(t.error)return h(t.error);let s=await this.sendOtp(e);if(s.error)return h(s.error);let{verificationId:n,isExistingUser:i}=s.data,o=t.data.kind==="phone"?{phone:t.data.username}:{email:t.data.username};return S({verificationId:n,isExistingUser:i,isUser:i,verify:a(({token:c,password:u})=>this.verifyOtp({verificationId:n,token:c,...o,isExistingUser:i,password:u}),"verify")})}async verifyOtp(e){let t=j(e,"verifyOtp");if(t.error)return h(t.error);if(!e.verificationId||!e.token)return h(p("verifyOtp requires verificationId and token"));let s=await this.request(w.verificationVerify,{method:"POST",body:{verification_id:e.verificationId,verification_code:e.token}});if(s.error)return h(s.error);let n=s.data??{},i=typeof n.verification_token=="string"?n.verification_token:"";if(!i)return h(p("provider returned no verification_token"));if(e.isExistingUser)return this.postForSession(w.signIn,{username:t.data.username,verification_token:i});let o=t.data.kind==="phone"?{phone:t.data.value,password:e.password}:{email:t.data.value,password:e.password};return this.signUp({...o,verificationToken:i})}async signInWithOAuth(e){if(!this.oauthRelayBaseUrl)return h(p("signInWithOAuth requires oauthRelayBaseUrl"));if(e.provider!=="google"&&e.provider!=="wechat"&&e.provider!=="workbuddy")return h(p("\u5F53\u524D SDK \u4E0D\u652F\u6301\u8BE5\u767B\u5F55\u65B9\u5F0F\uFF0C\u8BF7\u68C0\u67E5 SDK \u7248\u672C\u4E0E\u767B\u5F55\u914D\u7F6E\u3002"));let t=e.redirectTo??Mt();return t?this.startRelayOAuth(e,t):h(p("signInWithOAuth requires redirectTo outside a browser environment"))}parseCallbackQuery(e){try{let t=/^https?:\/\//i.test(e)?new URL(e).search:e;return S(new URLSearchParams(t))}catch{return h(p("oauth callback URL is invalid"))}}async handleOAuthCallback(e){let t=this.parseCallbackQuery(e??Ee());if(t.error||!t.data)return h(t.error??p("oauth callback URL is invalid"));let s=t.data,n=Se(s);if(n)return h({kind:"unauthenticated",message:n,status:0});let i=s.get("code");if(!i)return S(null);let o=s.get("state")??"";if(!o)return h(p("oauth callback requires state"));let c=s.get("provider_id");if(c!=="custom-oauth")return h(p("oauth callback requires provider_id=custom-oauth"));let u={provider_id:c,provider_code:i,state:o,provider_params:{state:o}};return this.postForSession(w.signInWithProvider,u)}async handleWechatWebCallback(e){let t=this.parseCallbackQuery(e??Ee());if(t.error||!t.data)return h(t.error??p("oauth callback URL is invalid"));let s=t.data,n=Se(s);if(n)return h({kind:"unauthenticated",message:n,status:0});let i=s.get("code");if(!i)return S(null);let o=s.get("state")??"";if(!o)return h(p("oauth callback requires state"));let c=s.get("provider");return c&&c!=="wechat"?h(p("wechat callback requires provider=wechat")):s.get("provider_id")==="custom-oauth"?h(p("wechat callback must not use provider_id=custom-oauth")):this.postForSession(w.loginWechatWeb,{code:i,state:o})}async handleWorkBuddyCallback(e){let t=this.parseCallbackQuery(e??Ee());if(t.error||!t.data)return h(t.error??p("oauth callback URL is invalid"));let s=t.data,n=s.get("provider");if(n&&n!=="workbuddy")return S(null);let i=Se(s);if(i)return this.workBuddyPkce.clearVerifier(),h({kind:"unauthenticated",message:i,status:0});let o=s.get("code");if(!o)return S(null);let c=s.get("state")??"";if(!c)return h(p("workbuddy callback requires state"));if(s.get("provider_id")==="custom-oauth")return h(p("workbuddy callback must not use provider_id=custom-oauth"));if(this.workBuddyPkce.isConsumed(c))return S(null);let u=this.workBuddyExchanges.get(c);if(u)return u;let d=this.workBuddyPkce.readVerifier();if(!d)return h(p("workbuddy callback has no local PKCE verifier; sign in again in this tab"));this.workBuddyPkce.clearVerifier();let l=this.exchangeWorkBuddyCode(o,c,d);this.workBuddyExchanges.set(c,l);try{return await l}finally{this.workBuddyExchanges.delete(c)}}async exchangeWorkBuddyCode(e,t,s){let n=await this.postForSession(w.loginWorkBuddy,{code:e,state:t,code_verifier:s});return n.data&&this.workBuddyPkce.markConsumed(t),n}async resetPasswordForEmail(e){if(!e)return h(p("resetPasswordForEmail requires email"));let t=await this.request(w.verification,{method:"POST",body:{email:e,usage:"PASSWORD_RESET",target:"USER"}});if(t.error)return h(t.error);let s=t.data??{},n=typeof s.verification_id=="string"?s.verification_id:"";return n?S({updateUser:a(async({nonce:i,password:o})=>{let c=await this.request(w.verificationVerify,{method:"POST",body:{verification_id:n,verification_code:i}});if(c.error)return h(c.error);let u=c.data??{},d=typeof u.verification_token=="string"?u.verification_token:"";if(!d)return h(p("provider returned no verification_token"));let l=await this.request(w.resetPassword,{method:"POST",body:{email:e,new_password:o,verification_token:d}});if(l.error)return h(l.error);let f=await this.signInWithPassword({email:e,password:o});return f.error||this.notify("PASSWORD_RECOVERY",f.data),f},"updateUser")}):h(p("provider returned no verification_id"))}async resetPasswordForOld(e){let t=await this.getAccessToken();if(!t)return h({kind:"unauthenticated",message:"no active session",status:0});let s=await this.request(w.sudo,{method:"POST",token:t,body:{password:e.oldPassword}});if(s.error)return h(s.error);let n=s.data??{},i=typeof n.sudo_token=="string"?n.sudo_token:"";if(!i)return h(p("provider returned no sudo_token"));let o=await this.request(w.userPassword,{method:"PATCH",token:t,body:{sudo_token:i,new_password:e.newPassword}});if(o.error)return h(o.error);let c=await this.getSession();return c.data?(this.notify("USER_UPDATED",c.data),S(c.data)):h(c.error??{kind:"unauthenticated",message:"no active session",status:0})}async getSession(){try{return S(await this.sessions.ensure())}catch(e){return h(ue(e)?e:W(e))}}async refreshSession(){try{return S(await this.sessions.forceRefresh())}catch(e){return h(ue(e)?e:W(e))}}async getUser(){let e=await this.getAccessToken();if(!e)return h({kind:"unauthenticated",message:"no active session",status:0});let t=await this.request(w.userMe,{method:"GET",token:e});return t.error?(Me(t.error)&&this.sessions.clear(),h(t.error)):S(Ne(t.data))}async signOut(){let e=this.sessions.peek();return e?.accessToken&&await this.request(w.signOut,{method:"POST",body:{},token:e.accessToken}),this.sessions.clear(),S(null)}onAuthStateChange(e){let t=this.nextListenerId++;return this.listeners.set(t,e),qe(e,"INITIAL_SESSION",this.sessions.peek()),()=>{this.listeners.delete(t)}}async startRelayOAuth(e,t){let s;try{s=new URL(t)}catch{return h(p("signInWithOAuth requires an absolute redirectTo URL"))}let n=new URL(`${this.oauthRelayBaseUrl}/authorize`);if(n.searchParams.set("provider",e.provider),n.searchParams.set("callback_url",s.toString()),e.provider==="workbuddy"){let i=await this.createWorkBuddyProof();if(i.error||!i.data)return h(i.error??p("signInWithOAuth could not create PKCE"));n.searchParams.set("code_challenge",i.data),n.searchParams.set("code_challenge_method","S256")}return S({url:n.toString()})}async createWorkBuddyProof(){if(!Ie())return h(p("workbuddy sign-in requires WebCrypto; it is unavailable in this runtime (an insecure http:// origin disables it \u2014 serve the app over https)"));if(!this.workBuddyPkce.usable())return h(p("workbuddy sign-in requires sessionStorage to keep the PKCE verifier across the redirect; it is unavailable in this runtime"));let e,t;try{e=je(),t=await De(e)}catch(s){return h(p(`workbuddy sign-in could not create a PKCE proof: ${Ft(s)}`))}return this.workBuddyPkce.saveVerifier(e)?S(t):h(p("workbuddy sign-in could not persist the PKCE verifier"))}async exchangeRefreshHandle(e){let t=await this.request(w.token,{method:"POST",body:{grant_type:"refresh_token",refresh_token:e}});if(t.error)throw t.error;return be(t.data,Date.now())}async postForSession(e,t,s={}){let n=await this.request(e,{method:"POST",body:t,headers:s.headers});if(n.error)return h(n.error);try{return S(this.sessions.commitSignIn(be(n.data,Date.now())))}catch(i){return h(ue(i)?i:W(i))}}async request(e,t){let s={...t.headers};t.body!==void 0&&(s["Content-Type"]="application/json"),t.token&&(s.Authorization=`Bearer ${t.token}`);let n;try{n=await this.fetch(this.baseUrl+e,{method:t.method,headers:s,body:t.body===void 0?void 0:JSON.stringify(t.body)})}catch(o){return h(W(o))}let i=await Bt(n);return n.ok?S(i):h(Fe(n.status,i))}notify(e,t){for(let s of this.listeners.values())qe(s,e,t)}};function S(r){return{data:r,error:null}}a(S,"ok");function h(r){return{data:null,error:r}}a(h,"fail");function p(r){return{kind:"invalid-request",message:r,status:0}}a(p,"badRequest");function Ft(r){return We(r instanceof Error?r.message:String(r),He)}a(Ft,"describeError");function ue(r){return!!r&&typeof r=="object"&&typeof r.kind=="string"}a(ue,"isCloudError");function Me(r){return r.kind==="unauthenticated"||r.code==="invalid_grant"}a(Me,"rejectedCredentials");async function Bt(r){let e=await r.text();if(!e)return null;try{return JSON.parse(e)}catch{return{message:e}}}a(Bt,"readBody");function qe(r,e,t){try{r(e,t)}catch{}}a(qe,"safeInvoke");function Mt(){let r=globalThis.location;return r?r.origin+r.pathname:""}a(Mt,"currentPageUrl");function Ee(){return globalThis.location?.search??""}a(Ee,"currentPageSearch");var xe=a(r=>Math.min(1e3*2**r,3e4),"getRetryDelay"),Ke=[520,503],ke=["GET","HEAD","OPTIONS"];var U=class extends Error{static{a(this,"PostgrestError")}details;hint;code;constructor(e){super(e.message),this.name="PostgrestError",this.details=e.details,this.hint=e.hint,this.code=e.code}toJSON(){return{name:this.name,message:this.message,details:this.details,hint:this.hint,code:this.code}}};function ze(r,e){return new Promise(t=>{if(e?.aborted){t();return}let s=setTimeout(()=>{e?.removeEventListener("abort",n),t()},r);function n(){clearTimeout(s),t()}a(n,"onAbort"),e?.addEventListener("abort",n)})}a(ze,"sleep");function qt(r,e,t,s){return!(!s||t>=3||!ke.includes(r)||!Ke.includes(e))}a(qt,"shouldRetry");var K=class{static{a(this,"PostgrestBuilder")}method;url;headers;schema;body;shouldThrowOnError=!1;signal;fetch;isMaybeSingle;shouldStripNulls;urlLengthLimit;retryEnabled=!0;constructor(e){this.method=e.method,this.url=e.url,this.headers=new Headers(e.headers),this.schema=e.schema,this.body=e.body,this.shouldThrowOnError=e.shouldThrowOnError??!1,this.signal=e.signal,this.isMaybeSingle=e.isMaybeSingle??!1,this.shouldStripNulls=e.shouldStripNulls??!1,this.urlLengthLimit=e.urlLengthLimit??8e3,this.retryEnabled=e.retry??!0,e.fetch?this.fetch=e.fetch:this.fetch=fetch}throwOnError(){return this.shouldThrowOnError=!0,this}stripNulls(){if(this.headers.get("Accept")==="text/csv")throw new Error("stripNulls() cannot be used with csv()");return this.shouldStripNulls=!0,this}setHeader(e,t){return this.headers=new Headers(this.headers),this.headers.set(e,t),this}retry(e){return this.retryEnabled=e,this}then(e,t){if(this.schema===void 0||(["GET","HEAD"].includes(this.method)?this.headers.set("Accept-Profile",this.schema):this.headers.set("Content-Profile",this.schema)),this.method!=="GET"&&this.method!=="HEAD"&&this.headers.set("Content-Type","application/json"),this.shouldStripNulls){let o=this.headers.get("Accept");o==="application/vnd.pgrst.object+json"?this.headers.set("Accept","application/vnd.pgrst.object+json;nulls=stripped"):(!o||o==="application/json")&&this.headers.set("Accept","application/vnd.pgrst.array+json;nulls=stripped")}let s=this.fetch,i=a(async()=>{let o=0;for(;;){let c={};this.headers.forEach((d,l)=>{c[l]=d}),o>0&&(c["X-Retry-Count"]=String(o));let u;try{u=await s(this.url.toString(),{method:this.method,headers:c,body:JSON.stringify(this.body,(d,l)=>typeof l=="bigint"?l.toString():l),signal:this.signal})}catch(d){if(d?.name==="AbortError"||d?.code==="ABORT_ERR"||!ke.includes(this.method))throw d;if(this.retryEnabled&&o<3){let l=xe(o);o++,await ze(l,this.signal);continue}throw d}if(qt(this.method,u.status,o,this.retryEnabled)){let d=u.headers?.get("Retry-After")??null,l=d!==null?Math.max(0,parseInt(d,10)||0)*1e3:xe(o);await u.text(),o++,await ze(l,this.signal);continue}return await this.processResponse(u)}},"executeWithRetry")();return this.shouldThrowOnError||(i=i.catch(o=>{let c="",u="",d="",l=o?.cause;if(l){let g=l?.message??"",y=l?.code??"";c=`${o?.name??"FetchError"}: ${o?.message}`,c+=`
+
+Caused by: ${l?.name??"Error"}: ${g}`,y&&(c+=` (${y})`),l?.stack&&(c+=`
+${l.stack}`)}else c=o?.stack??"";let f=this.url.toString().length;return o?.name==="AbortError"||o?.code==="ABORT_ERR"?(d="",u="Request was aborted (timeout or manual cancellation)",f>this.urlLengthLimit&&(u+=`. Note: Your request URL is ${f} characters, which may exceed server limits. If selecting many fields, consider using views. If filtering with large arrays (e.g., .in('id', [many IDs])), consider using an RPC function to pass values server-side.`)):(l?.name==="HeadersOverflowError"||l?.code==="UND_ERR_HEADERS_OVERFLOW")&&(d="",u="HTTP headers exceeded server limits (typically 16KB)",f>this.urlLengthLimit&&(u+=`. Your request URL is ${f} characters. If selecting many fields, consider using views. If filtering with large arrays (e.g., .in('id', [200+ IDs])), consider using an RPC function instead.`)),{success:!1,error:{message:`${o?.name??"FetchError"}: ${o?.message}`,details:c,hint:u,code:d},data:null,count:null,status:0,statusText:""}})),i.then(e,t)}async processResponse(e){let t=null,s=null,n=null,i=e.status,o=e.statusText;if(e.ok){if(this.method!=="HEAD"){let d=await e.text();if(d!=="")if(this.headers.get("Accept")==="text/csv")s=d;else if(this.headers.get("Accept")&&this.headers.get("Accept")?.includes("application/vnd.pgrst.plan+text"))s=d;else try{s=JSON.parse(d)}catch{if(t={message:d},s=null,this.shouldThrowOnError)throw new U({message:d,details:"",hint:"",code:""})}}let c=this.headers.get("Prefer")?.match(/count=(exact|planned|estimated)/),u=e.headers.get("content-range")?.split("/");if(c&&u&&u.length>1&&(n=parseInt(u[1])),this.isMaybeSingle&&Array.isArray(s))if(s.length>1){if(t={code:"PGRST116",details:`Results contain ${s.length} rows, application/vnd.pgrst.object+json requires 1 row`,hint:null,message:"JSON object requested, multiple (or no) rows returned"},s=null,n=null,i=406,o="Not Acceptable",this.shouldThrowOnError)throw new U({...t,hint:t.hint??""})}else s.length===1?s=s[0]:s=null}else{let c=await e.text();try{t=JSON.parse(c),Array.isArray(t)&&e.status===404&&(s=[],t=null,i=200,o="OK")}catch{e.status===404&&c===""?(i=204,o="No Content"):t={message:c}}if(t&&this.shouldThrowOnError)throw new U(t)}return{success:t===null,error:t,data:s,count:n,status:i,statusText:o}}returns(){return this}overrideTypes(){return this}};var z=class extends K{static{a(this,"PostgrestTransformBuilder")}throwOnError(){return super.throwOnError()}select(e){let t=!1,s=(e??"*").split("").map(n=>/\s/.test(n)&&!t?"":(n==='"'&&(t=!t),n)).join("");return this.url.searchParams.set("select",s),this.headers.append("Prefer","return=representation"),this}order(e,{ascending:t=!0,nullsFirst:s,foreignTable:n,referencedTable:i=n}={}){let o=i?`${i}.order`:"order",c=this.url.searchParams.get(o);return this.url.searchParams.set(o,`${c?`${c},`:""}${e}.${t?"asc":"desc"}${s===void 0?"":s?".nullsfirst":".nullslast"}`),this}limit(e,{foreignTable:t,referencedTable:s=t}={}){let n=typeof s>"u"?"limit":`${s}.limit`;return this.url.searchParams.set(n,`${e}`),this}range(e,t,{foreignTable:s,referencedTable:n=s}={}){let i=typeof n>"u"?"offset":`${n}.offset`,o=typeof n>"u"?"limit":`${n}.limit`;return this.url.searchParams.set(i,`${e}`),this.url.searchParams.set(o,`${t-e+1}`),this}abortSignal(e){return this.signal=e,this}single(){return this.headers.set("Accept","application/vnd.pgrst.object+json"),this}maybeSingle(){return this.isMaybeSingle=!0,this}csv(){return this.headers.set("Accept","text/csv"),this}geojson(){return this.headers.set("Accept","application/geo+json"),this}explain({analyze:e=!1,verbose:t=!1,settings:s=!1,buffers:n=!1,wal:i=!1,format:o="text"}={}){let c=[e?"analyze":null,t?"verbose":null,s?"settings":null,n?"buffers":null,i?"wal":null].filter(Boolean).join("|"),u=this.headers.get("Accept")??"application/json";return this.headers.set("Accept",`application/vnd.pgrst.plan+${o}; for="${u}"; options=${c};`),o==="json"?this:this}rollback(){return this.headers.append("Prefer","tx=rollback"),this}returns(){return this}maxAffected(e){return this.headers.append("Prefer","handling=strict"),this.headers.append("Prefer",`max-affected=${e}`),this}};var Ge=new RegExp("[,()]"),O=class extends z{static{a(this,"PostgrestFilterBuilder")}throwOnError(){return super.throwOnError()}eq(e,t){return this.url.searchParams.append(e,`eq.${t}`),this}neq(e,t){return this.url.searchParams.append(e,`neq.${t}`),this}gt(e,t){return this.url.searchParams.append(e,`gt.${t}`),this}gte(e,t){return this.url.searchParams.append(e,`gte.${t}`),this}lt(e,t){return this.url.searchParams.append(e,`lt.${t}`),this}lte(e,t){return this.url.searchParams.append(e,`lte.${t}`),this}like(e,t){return this.url.searchParams.append(e,`like.${t}`),this}likeAllOf(e,t){return this.url.searchParams.append(e,`like(all).{${t.join(",")}}`),this}likeAnyOf(e,t){return this.url.searchParams.append(e,`like(any).{${t.join(",")}}`),this}ilike(e,t){return this.url.searchParams.append(e,`ilike.${t}`),this}ilikeAllOf(e,t){return this.url.searchParams.append(e,`ilike(all).{${t.join(",")}}`),this}ilikeAnyOf(e,t){return this.url.searchParams.append(e,`ilike(any).{${t.join(",")}}`),this}regexMatch(e,t){return this.url.searchParams.append(e,`match.${t}`),this}regexIMatch(e,t){return this.url.searchParams.append(e,`imatch.${t}`),this}is(e,t){return this.url.searchParams.append(e,`is.${t}`),this}isDistinct(e,t){return this.url.searchParams.append(e,`isdistinct.${t}`),this}in(e,t){let s=Array.from(new Set(t)).map(n=>typeof n=="string"&&Ge.test(n)?`"${n}"`:`${n}`).join(",");return this.url.searchParams.append(e,`in.(${s})`),this}notIn(e,t){let s=Array.from(new Set(t)).map(n=>typeof n=="string"&&Ge.test(n)?`"${n}"`:`${n}`).join(",");return this.url.searchParams.append(e,`not.in.(${s})`),this}contains(e,t){return typeof t=="string"?this.url.searchParams.append(e,`cs.${t}`):Array.isArray(t)?this.url.searchParams.append(e,`cs.{${t.join(",")}}`):this.url.searchParams.append(e,`cs.${JSON.stringify(t)}`),this}containedBy(e,t){return typeof t=="string"?this.url.searchParams.append(e,`cd.${t}`):Array.isArray(t)?this.url.searchParams.append(e,`cd.{${t.join(",")}}`):this.url.searchParams.append(e,`cd.${JSON.stringify(t)}`),this}rangeGt(e,t){return this.url.searchParams.append(e,`sr.${t}`),this}rangeGte(e,t){return this.url.searchParams.append(e,`nxl.${t}`),this}rangeLt(e,t){return this.url.searchParams.append(e,`sl.${t}`),this}rangeLte(e,t){return this.url.searchParams.append(e,`nxr.${t}`),this}rangeAdjacent(e,t){return this.url.searchParams.append(e,`adj.${t}`),this}overlaps(e,t){return typeof t=="string"?this.url.searchParams.append(e,`ov.${t}`):this.url.searchParams.append(e,`ov.{${t.join(",")}}`),this}textSearch(e,t,{config:s,type:n}={}){let i="";n==="plain"?i="pl":n==="phrase"?i="ph":n==="websearch"&&(i="w");let o=s===void 0?"":`(${s})`;return this.url.searchParams.append(e,`${i}fts${o}.${t}`),this}match(e){return Object.entries(e).filter(([t,s])=>s!==void 0).forEach(([t,s])=>{this.url.searchParams.append(t,`eq.${s}`)}),this}not(e,t,s){return this.url.searchParams.append(e,`not.${t}.${s}`),this}or(e,{foreignTable:t,referencedTable:s=t}={}){let n=s?`${s}.or`:"or";return this.url.searchParams.append(n,`(${e})`),this}filter(e,t,s){return this.url.searchParams.append(e,`${t}.${s}`),this}};var V=class{static{a(this,"PostgrestQueryBuilder")}url;headers;schema;signal;fetch;urlLengthLimit;retry;constructor(e,{headers:t={},schema:s,fetch:n,urlLengthLimit:i=8e3,retry:o}){this.url=e,this.headers=new Headers(t),this.schema=s,this.fetch=n,this.urlLengthLimit=i,this.retry=o}cloneRequestState(){return{url:new URL(this.url.toString()),headers:new Headers(this.headers)}}select(e,t){let{head:s=!1,count:n}=t??{},i=s?"HEAD":"GET",o=!1,c=(e??"*").split("").map(l=>/\s/.test(l)&&!o?"":(l==='"'&&(o=!o),l)).join(""),{url:u,headers:d}=this.cloneRequestState();return u.searchParams.set("select",c),n&&d.append("Prefer",`count=${n}`),new O({method:i,url:u,headers:d,schema:this.schema,fetch:this.fetch,urlLengthLimit:this.urlLengthLimit,retry:this.retry})}insert(e,{count:t,defaultToNull:s=!0}={}){let n="POST",{url:i,headers:o}=this.cloneRequestState();if(t&&o.append("Prefer",`count=${t}`),s||o.append("Prefer","missing=default"),Array.isArray(e)){let c=e.reduce((u,d)=>u.concat(Object.keys(d)),[]);if(c.length>0){let u=[...new Set(c)].map(d=>`"${d}"`);i.searchParams.set("columns",u.join(","))}}return new O({method:n,url:i,headers:o,schema:this.schema,body:e,fetch:this.fetch??fetch,urlLengthLimit:this.urlLengthLimit,retry:this.retry})}upsert(e,{onConflict:t,ignoreDuplicates:s=!1,count:n,defaultToNull:i=!0}={}){let o="POST",{url:c,headers:u}=this.cloneRequestState();if(u.append("Prefer",`resolution=${s?"ignore":"merge"}-duplicates`),t!==void 0&&c.searchParams.set("on_conflict",t),n&&u.append("Prefer",`count=${n}`),i||u.append("Prefer","missing=default"),Array.isArray(e)){let d=e.reduce((l,f)=>l.concat(Object.keys(f)),[]);if(d.length>0){let l=[...new Set(d)].map(f=>`"${f}"`);c.searchParams.set("columns",l.join(","))}}return new O({method:o,url:c,headers:u,schema:this.schema,body:e,fetch:this.fetch??fetch,urlLengthLimit:this.urlLengthLimit,retry:this.retry})}update(e,{count:t}={}){let s="PATCH",{url:n,headers:i}=this.cloneRequestState();return t&&i.append("Prefer",`count=${t}`),new O({method:s,url:n,headers:i,schema:this.schema,body:e,fetch:this.fetch??fetch,urlLengthLimit:this.urlLengthLimit,retry:this.retry})}delete({count:e}={}){let t="DELETE",{url:s,headers:n}=this.cloneRequestState();return e&&n.append("Prefer",`count=${e}`),new O({method:t,url:s,headers:n,schema:this.schema,fetch:this.fetch??fetch,urlLengthLimit:this.urlLengthLimit,retry:this.retry})}};var N=class r{static{a(this,"PostgrestClient")}url;headers;schemaName;fetch;urlLengthLimit;retry;constructor(e,{headers:t={},schema:s,fetch:n,timeout:i,urlLengthLimit:o=8e3,retry:c}={}){this.url=e,this.headers=new Headers(t),this.schemaName=s,this.urlLengthLimit=o;let u=n??globalThis.fetch;i!==void 0&&i>0?this.fetch=(d,l)=>{let f=new AbortController,g=setTimeout(()=>f.abort(),i),y=l?.signal;if(y){if(y.aborted)return clearTimeout(g),u(d,l);let se=a(()=>{clearTimeout(g),f.abort()},"abortHandler");return y.addEventListener("abort",se,{once:!0}),u(d,{...l,signal:f.signal}).finally(()=>{clearTimeout(g),y.removeEventListener("abort",se)})}return u(d,{...l,signal:f.signal}).finally(()=>clearTimeout(g))}:this.fetch=u,this.retry=c}from(e){if(!e||typeof e!="string"||e.trim()==="")throw new Error("Invalid relation name: relation must be a non-empty string.");let t=new URL(`${this.url}/${e}`);return new V(t,{headers:new Headers(this.headers),schema:this.schemaName,fetch:this.fetch,urlLengthLimit:this.urlLengthLimit,retry:this.retry})}schema(e){return new r(this.url,{headers:this.headers,schema:e,fetch:this.fetch,urlLengthLimit:this.urlLengthLimit,retry:this.retry})}rpc(e,t={},{head:s=!1,get:n=!1,count:i}={}){let o,c=new URL(`${this.url}/rpc/${e}`),u,d=a(g=>g!==null&&typeof g=="object"&&(!Array.isArray(g)||g.some(d)),"_isObject"),l=s&&Object.values(t).some(d);l?(o="POST",u=t):s||n?(o=s?"HEAD":"GET",Object.entries(t).filter(([g,y])=>y!==void 0).map(([g,y])=>[g,Array.isArray(y)?`{${y.join(",")}}`:`${y}`]).forEach(([g,y])=>{c.searchParams.append(g,y)})):(o="POST",u=t);let f=new Headers(this.headers);return l?f.set("Prefer",i?`count=${i},return=minimal`:"return=minimal"):i&&f.set("Prefer",`count=${i}`),new O({method:o,url:c,headers:f,schema:this.schemaName,body:u,fetch:this.fetch??fetch,urlLengthLimit:this.urlLengthLimit,retry:this.retry})}};var G=class{static{a(this,"WorkBuddyDatabaseModule")}client;constructor(e,t){this.client=new N(`${e.endpoint}${A.database}`,{fetch:t}),this.from=this.client.from.bind(this.client),this.rpc=this.client.rpc.bind(this.client)}from;rpc;get url(){return this.client.url}};function Je(r,e){return new G(r,e)}a(Je,"createDatabaseModule");var x=class extends Error{static{a(this,"CloudOpenAIError")}error;status;requestId;retryAfterMs;constructor(e,t={}){let s=typeof e=="string"?{message:e,type:"server_error",param:null,code:null}:e;super(s.message),this.name="CloudOpenAIError",this.error=s,this.status=t.status,this.requestId=t.requestId,this.retryAfterMs=t.retryAfterMs,t.cause!==void 0&&("cause"in this||Object.defineProperty(this,"cause",{value:t.cause,writable:!1,enumerable:!1,configurable:!1}))}};function Ye(r){if(!r)return;let e=r.trim(),t=Number(e);if(!isNaN(t)&&t>=0&&Number.isInteger(t))return t*1e3;let s=Date.parse(e);if(!isNaN(s)){let n=s-Date.now();return n>0?n:0}}a(Ye,"parseRetryAfter");function m(...r){return r.find(e=>typeof e=="string"&&e.length>0)}a(m,"stringField");function E(...r){return r.find(e=>typeof e=="number"&&Number.isFinite(e))}a(E,"numberField");function k(...r){return r.find(e=>typeof e=="boolean")}a(k,"booleanField");function Xe(...r){for(let e of r){if(typeof e=="number"&&Number.isFinite(e))return e;if(e!==null&&typeof e=="object"&&!Array.isArray(e))return Ht(e)}}a(Xe,"contextWindowField");function Ht(r){let e={};for(let[t,s]of Object.entries(r)){if(t==="supportedLengths"){Array.isArray(s)&&(e.supportedLengths=s.filter(n=>typeof n=="number"&&Number.isFinite(n)));continue}if(t==="defaultLength"){typeof s=="number"&&Number.isFinite(s)&&(e.defaultLength=s);continue}Object.defineProperty(e,t,{value:s,writable:!0,enumerable:!0,configurable:!0})}return e}a(Ht,"normalizeContextWindowObject");function Qe(r){if(!r||typeof r!="object")return;let e=r,t=Array.isArray(e.input)?e.input.filter(n=>typeof n=="string"):void 0,s=Array.isArray(e.output)?e.output.filter(n=>typeof n=="string"):void 0;return t?.length||s?.length?{...t?.length?{input:t}:{},...s?.length?{output:s}:{}}:void 0}a(Qe,"modalitiesField");function Ze(r){if(!r||typeof r!="object")return;let t=Object.entries(r).filter(([,s])=>typeof s=="boolean");return t.length?Object.fromEntries(t):void 0}a(Ze,"capabilitiesField");function et(r){if(!r||typeof r!="object")return;let e=r,t={...m(e.currency)?{currency:e.currency}:{},...E(e.inputPerMillionTokens)!==void 0?{inputPerMillionTokens:e.inputPerMillionTokens}:{},...E(e.outputPerMillionTokens)!==void 0?{outputPerMillionTokens:e.outputPerMillionTokens}:{},...m(e.displayText)?{displayText:e.displayText}:{}};return Object.keys(t).length?t:void 0}a(et,"pricingField");function tt(r){if(!r||typeof r!="object")return;let e=r,t={},s=m(e.effort);s!==void 0&&(t.effort=s);let n=m(e.defaultEffort);n!==void 0&&(t.defaultEffort=n),Array.isArray(e.supportedEfforts)&&(t.supportedEfforts=e.supportedEfforts.filter(c=>typeof c=="string"));let i=m(e.summary);i!==void 0&&(i==="auto"||i==="concise"||i==="detailed")&&(t.summary=i);let o=k(e.canDisableThinking);return o!==void 0&&(t.canDisableThinking=o),Object.keys(t).length>0?t:void 0}a(tt,"reasoningField");function Wt(r){let e=m(r.id,r.ID);if(!e)return null;let t=k(r.enabled,r.Enabled),s=k(r.disabled,r.Disabled),n,i;return t!==void 0?(n=t,s!==void 0&&(i=s)):s!==void 0?(i=s,n=!s):n=!0,{id:e,name:m(r.name,r.Name)??e,...m(r.provider,r.Provider)?{provider:m(r.provider,r.Provider)}:{},...m(r.vendor,r.Vendor)?{vendor:m(r.vendor,r.Vendor)}:{},...m(r.family,r.Family)?{family:m(r.family,r.Family)}:{},...m(r.version,r.Version)?{version:m(r.version,r.Version)}:{},...m(r.description,r.Description)?{description:m(r.description,r.Description)}:{},...m(r.descriptionZh,r.DescriptionZh)?{descriptionZh:m(r.descriptionZh,r.DescriptionZh)}:{},...m(r.descriptionEn,r.DescriptionEn)?{descriptionEn:m(r.descriptionEn,r.DescriptionEn)}:{},...m(r.iconUrl,r.IconURL)?{iconUrl:m(r.iconUrl,r.IconURL)}:{},...Xe(r.contextWindow,r.ContextWindow)!==void 0?{contextWindow:Xe(r.contextWindow,r.ContextWindow)}:{},...E(r.maxInputTokens,r.MaxInputTokens)!==void 0?{maxInputTokens:E(r.maxInputTokens,r.MaxInputTokens)}:{},...E(r.maxOutputTokens,r.MaxOutputTokens)!==void 0?{maxOutputTokens:E(r.maxOutputTokens,r.MaxOutputTokens)}:{},...Qe(r.modalities??r.Modalities)?{modalities:Qe(r.modalities??r.Modalities)}:{},...Ze(r.capabilities??r.Capabilities)?{capabilities:Ze(r.capabilities??r.Capabilities)}:{},enabled:n,...i!==void 0?{disabled:i}:{},...k(r.isDefault,r.IsDefault)!==void 0?{isDefault:k(r.isDefault,r.IsDefault)}:{},...E(r.sortOrder,r.SortOrder)!==void 0?{sortOrder:E(r.sortOrder,r.SortOrder)}:{},...et(r.pricing??r.Pricing)?{pricing:et(r.pricing??r.Pricing)}:{},...m(r.credits,r.Credits)?{credits:m(r.credits,r.Credits)}:{},...E(r.maxAllowedSize,r.MaxAllowedSize)!==void 0?{maxAllowedSize:E(r.maxAllowedSize,r.MaxAllowedSize)}:{},...k(r.disabledMultimodal,r.DisabledMultimodal)!==void 0?{disabledMultimodal:k(r.disabledMultimodal,r.DisabledMultimodal)}:{},...k(r.supportsImages,r.SupportsImages)!==void 0?{supportsImages:k(r.supportsImages,r.SupportsImages)}:{},...k(r.supportsToolCall,r.SupportsToolCall)!==void 0?{supportsToolCall:k(r.supportsToolCall,r.SupportsToolCall)}:{},...k(r.supportsReasoning,r.SupportsReasoning)!==void 0?{supportsReasoning:k(r.supportsReasoning,r.SupportsReasoning)}:{},...k(r.onlyReasoning,r.OnlyReasoning)!==void 0?{onlyReasoning:k(r.onlyReasoning,r.OnlyReasoning)}:{},...tt(r.reasoning??r.Reasoning)?{reasoning:tt(r.reasoning??r.Reasoning)}:{},...E(r.temperature,r.Temperature)!==void 0?{temperature:E(r.temperature,r.Temperature)}:{},...E(r.top_k,r.Top_K)!==void 0?{top_k:E(r.top_k,r.Top_K)}:{},...E(r.top_p,r.Top_P)!==void 0?{top_p:E(r.top_p,r.Top_P)}:{},...E(r.repetition_penalty,r.Repetition_Penalty)!==void 0?{repetition_penalty:E(r.repetition_penalty,r.Repetition_Penalty)}:{}}}a(Wt,"normalizeModel");function ve(r){return r.name||r.id}a(ve,"getModelDisplayName");function Pe(r,e){return r.capabilities?.[e]}a(Pe,"getModelCapability");var de=class{static{a(this,"ModelsAPI")}baseUrl;fetch;constructor(e,t){this.baseUrl=e,this.fetch=t}async list(e){let t;try{t=await this.fetch(`${this.baseUrl}/models`,{method:"GET",headers:{Accept:"application/json"},signal:e})}catch(c){throw c instanceof Error&&c.name==="AbortError"?c:new x({message:`Network error: ${c?.message??"unknown"}`,type:"server_error",param:null,code:"gateway_network_error"},{cause:c})}if(!t.ok)throw await _e(t);let s=await t.text(),n;try{n=JSON.parse(s)}catch{throw new x({message:"Failed to parse models response: invalid JSON",type:"server_error",param:null,code:"gateway_invalid_response"})}let i=Array.isArray(n)?n:Array.isArray(n?.data)?n.data:[],o=[];for(let c of i){let u=Wt(c);u&&o.push(u)}return o}};async function _e(r){let e=await r.text().catch(()=>""),t;try{let i=JSON.parse(e);if(i&&typeof i=="object"&&i.error){let o=i.error;t={message:typeof o.message=="string"?o.message:`HTTP ${r.status}`,type:typeof o.type=="string"?o.type:"server_error",param:o.param===void 0?null:o.param,code:o.code===void 0?null:o.code}}else t={message:typeof i=="string"?i:`HTTP ${r.status}`,type:"server_error",param:null,code:null}}catch{t={message:e||`HTTP ${r.status}`,type:"server_error",param:null,code:null}}let s=r.headers.get("x-request-id")??void 0,n=Ye(r.headers.get("retry-after"));return new x(t,{status:r.status,requestId:s,retryAfterMs:n})}a(_e,"httpError");var le=class{static{a(this,"Utf8Decoder")}codePoint=0;bytesNeeded=0;bytesSeen=0;lowerBoundary=128;upperBoundary=191;bomSeen=!1;streaming=!1;resetSequence(){this.codePoint=0,this.bytesNeeded=0,this.bytesSeen=0,this.lowerBoundary=128,this.upperBoundary=191}decode(e=new Uint8Array,t={}){this.streaming||(this.resetSequence(),this.bomSeen=!1),this.streaming=t.stream===!0;let s="",n=a(i=>{!this.bomSeen&&(this.bomSeen=!0,i===65279)||(s+=String.fromCodePoint(i))},"emit");for(let i=0;i<e.length;i++){let o=e[i];if(this.bytesNeeded===0){o<=127?n(o):o>=194&&o<=223?(this.bytesNeeded=1,this.codePoint=o&31):o>=224&&o<=239?(this.bytesNeeded=2,this.codePoint=o&15,o===224&&(this.lowerBoundary=160),o===237&&(this.upperBoundary=159)):o>=240&&o<=244?(this.bytesNeeded=3,this.codePoint=o&7,o===240&&(this.lowerBoundary=144),o===244&&(this.upperBoundary=143)):n(65533);continue}if(o<this.lowerBoundary||o>this.upperBoundary){this.resetSequence(),n(65533),i--;continue}this.lowerBoundary=128,this.upperBoundary=191,this.codePoint=this.codePoint<<6|o&63,this.bytesSeen++,this.bytesSeen===this.bytesNeeded&&(n(this.codePoint),this.resetSequence())}return!this.streaming&&this.bytesNeeded>0&&(n(65533),this.resetSequence()),s}};var Kt=class{static{a(this,"SSEDecoder")}event=null;dataParts=[];decode(e){let t=e;if(t.endsWith("\r")&&(t=t.slice(0,-1)),t===""){if(this.event===null&&this.dataParts.length===0)return null;let o={event:this.event,data:this.dataParts.join(`
+`)};return this.event=null,this.dataParts=[],o}if(t.startsWith(":"))return null;let s=t.indexOf(":"),n,i;if(s===-1)n=t,i="";else{n=t.slice(0,s);let o=t.slice(s+1);o.startsWith(" ")&&(o=o.slice(1)),i=o}return n==="event"?this.event=i:n==="data"&&this.dataParts.push(i),null}flush(){if(this.event===null&&this.dataParts.length===0)return null;let e={event:this.event,data:this.dataParts.join(`
+`)};return this.event=null,this.dataParts=[],e}},zt=class{static{a(this,"LineDecoder")}buffer=new Uint8Array;decoder;constructor(){this.decoder=typeof TextDecoder>"u"?new le:new TextDecoder("utf-8")}decode(e){let t=new Uint8Array(this.buffer.length+e.length);t.set(this.buffer),t.set(e,this.buffer.length),this.buffer=t;let s=[],n=0;for(let i=0;i<this.buffer.length;i++)if(this.buffer[i]===10||this.buffer[i]===13){let o=this.buffer.subarray(n,i),c=this.decoder.decode(o,{stream:!0});s.push(c),this.buffer[i]===13&&i+1<this.buffer.length&&this.buffer[i+1]===10&&i++,n=i+1}return n>0&&(this.buffer=this.buffer.slice(n)),s}flush(){if(this.buffer.length===0){let t=this.decoder.decode();return t?[t]:[]}let e=this.decoder.decode(this.buffer,{stream:!1});return this.buffer=new Uint8Array,e?[e]:[]}},rt="[DONE]";async function*st(r,e){let t=new Kt,s=new zt,n=r.getReader(),i=!1,o=a(()=>{i=!0,n.cancel().catch(()=>{})},"onAbort");if(e){if(e.aborted)return;e.addEventListener("abort",o,{once:!0})}try{for(;;){if(i)return;let u;try{u=await n.read()}catch(f){if(i||f instanceof Error&&f.name==="AbortError")return;throw f}let{done:d,value:l}=u;if(d)break;for(let f of s.decode(l)){let g=t.decode(f);g&&(yield g)}}for(let u of s.flush()){let d=t.decode(u);d&&(yield d)}let c=t.flush();c&&(yield c)}finally{e&&e.removeEventListener("abort",o);try{n.releaseLock()}catch{}}}a(st,"iterSSEEvents");function Vt(r,e){let t=e?{requestId:e}:{};try{let s=JSON.parse(r);if(s&&typeof s=="object"){let n=s.error??s;if(n&&typeof n=="object")return new x({message:typeof n.message=="string"?n.message:"Stream error",type:typeof n.type=="string"?n.type:"server_error",param:n.param===void 0?null:n.param,code:n.code===void 0?null:n.code},t)}}catch{}return new x({message:r||"Stream error",type:"server_error",param:null,code:null},t)}a(Vt,"extractSSEError");var he=class{static{a(this,"ChatCompletionsAPI")}baseUrl;fetch;constructor(e,t){this.baseUrl=e,this.fetch=t}create(e){if(e.stream!==!0)throw new x({message:"stream must be true; non-streaming chat completions are not supported",type:"invalid_request_error",param:"stream",code:"request_stream_required"});return this.createStreaming(e)}async*createStreaming(e){let{signal:t,conversationId:s,...n}=e;n.stream=!0;let i;try{i=await this.fetch(`${this.baseUrl}/chat/completions`,{method:"POST",headers:{Accept:"text/event-stream","Content-Type":"application/json",...s!==void 0?{"X-Conversation-ID":s}:{}},body:JSON.stringify(n),signal:t})}catch(d){if(d instanceof Error&&d.name==="AbortError")return;throw new x({message:`Network error: ${d?.message??"unknown"}`,type:"server_error",param:null,code:"gateway_network_error"},{cause:d})}if(!i.ok)throw await _e(i);if(!i.body)throw new x({message:"Response body is empty \u2014 streaming not supported",type:"server_error",param:null,code:"gateway_invalid_response"},{requestId:i.headers.get("x-request-id")??void 0});let o=i.headers.get("x-request-id")??void 0,c=!1,u=!1;try{for await(let d of st(i.body,t)){if(d.event==="error")throw u=!0,Vt(d.data,o);if(d.event===null||d.event===""){if(d.data===rt){c=!0;return}if(!d.data)continue;let l;try{l=JSON.parse(d.data)}catch{throw u=!0,new x({message:`Failed to parse SSE data: ${d.data}`,type:"server_error",param:null,code:"gateway_invalid_response"},{requestId:o})}if(l&&typeof l=="object"&&"error"in l){u=!0;let f=l.error;throw new x({message:typeof f?.message=="string"?f.message:"Stream error",type:typeof f?.type=="string"?f.type:"server_error",param:f?.param===void 0?null:f.param,code:f?.code===void 0?null:f.code},{requestId:o})}yield l}}}catch(d){if(d instanceof Error&&d.name==="AbortError")return;throw u=!0,d}if(!c&&!u&&!t?.aborted)throw new x({message:"\u6D41\u5F0F\u54CD\u5E94\u4E2D\u65AD\u3002",type:"server_error",param:null,code:"gateway_stream_interrupted"},{requestId:o})}};var F=class{static{a(this,"LlmModule")}fetch;baseUrl;models;chat;constructor(e,t){this.fetch=t,this.baseUrl=`${e.endpoint}${A.llm}`,this.models=new de(this.baseUrl,this.fetch),this.chat={completions:new he(this.baseUrl,this.fetch)}}};var B=class extends Error{static{a(this,"StorageError")}__isStorageError=!0;namespace;status;statusCode;constructor(e,t="storage",s,n){super(e),this.namespace=t,this.name=t==="vectors"?"StorageVectorsError":"StorageError",this.status=s,this.statusCode=n}toJSON(){return{name:this.name,message:this.message,status:this.status,statusCode:this.statusCode}}};function $(r){return typeof r=="object"&&r!==null&&"__isStorageError"in r}a($,"isStorageError");var L=class extends B{static{a(this,"StorageApiError")}status;statusCode;code;constructor(e,t,s,n="storage",i){super(e,n,t,s),this.name=n==="vectors"?"StorageVectorsApiError":"StorageApiError",this.status=t,this.statusCode=s,this.code=i}toJSON(){return{...super.toJSON(),code:this.code}}},M=class extends B{static{a(this,"StorageUnknownError")}originalError;constructor(e,t,s="storage"){super(e,s),this.name=s==="vectors"?"StorageVectorsUnknownError":"StorageUnknownError",this.originalError=t}};function C(r,e,t){let s={...r},n=e.toLowerCase();for(let i of Object.keys(s))i.toLowerCase()===n&&delete s[i];return s[n]=t,s}a(C,"setHeader");function nt(r){let e={};for(let[t,s]of Object.entries(r))e[t.toLowerCase()]=s;return e}a(nt,"normalizeHeaders");var it=a(r=>r?(...e)=>r(...e):(...e)=>fetch(...e),"resolveFetch");var ot=a(r=>{if(typeof r!="object"||r===null)return!1;let e=Object.getPrototypeOf(r);return(e===null||e===Object.prototype||Object.getPrototypeOf(e)===null)&&!(Symbol.toStringTag in r)&&!(Symbol.iterator in r)},"isPlainObject"),fe=a(r=>{if(Array.isArray(r))return r.map(t=>fe(t));if(typeof r=="function"||r!==Object(r))return r;let e={};return Object.entries(r).forEach(([t,s])=>{let n=t.replace(/([-_][a-z])/gi,i=>i.toUpperCase().replace(/[-_]/g,""));e[n]=fe(s)}),e},"recursiveToCamel");var at=a(r=>r.split("/").map(encodeURIComponent).join("/"),"encodeStoragePath");var ct=a(r=>{if(typeof r=="object"&&r!==null){let e=r;if(typeof e.msg=="string")return e.msg;if(typeof e.message=="string")return e.message;if(typeof e.error_description=="string")return e.error_description;if(typeof e.error=="string")return e.error;if(typeof e.error=="object"&&e.error!==null){let t=e.error;if(typeof t.message=="string")return t.message}}return JSON.stringify(r)},"_getErrorMessage"),Gt=a(async(r,e,t,s)=>{if(r!==null&&typeof r=="object"&&"json"in r&&typeof r.json=="function"){let i=r,o=parseInt(String(i.status),10);Number.isFinite(o)||(o=500),i.json().then(c=>{let u=c?.statusCode||c?.code||o+"";e(new L(ct(c),o,u,s,c?.code))}).catch(()=>{let c=o+"",u=i.statusText||`HTTP ${o} error`;e(new L(u,o,c,s))})}else e(new M(ct(r),r,s))},"handleError"),Jt=a((r,e,t,s)=>{let n={method:r,headers:e?.headers||{}};if(r==="GET"||r==="HEAD"||!s)return{...n,...t};if(ot(s)){let i=e?.headers||{},o;for(let[c,u]of Object.entries(i))c.toLowerCase()==="content-type"&&(o=u);n.headers=C(i,"Content-Type",o??"application/json"),n.body=JSON.stringify(s)}else n.body=s;return e?.duplex&&(n.duplex=e.duplex),{...n,...t}},"_getRequestParams");async function J(r,e,t,s,n,i,o){return new Promise((c,u)=>{r(t,Jt(e,s,n,i)).then(d=>{if(!d.ok)throw d;if(s?.noResolveJson)return d;if(o==="vectors"){let l=d.headers.get("content-type");if(d.headers.get("content-length")==="0"||d.status===204)return{};if(!l||!l.includes("application/json"))return{}}return d.json()}).then(d=>c(d)).catch(d=>Gt(d,u,s,o))})}a(J,"_handleRequest");function ut(r="storage"){return{get:a(async(e,t,s,n)=>J(e,"GET",t,s,n,void 0,r),"get"),post:a(async(e,t,s,n,i)=>J(e,"POST",t,n,i,s,r),"post"),put:a(async(e,t,s,n,i)=>J(e,"PUT",t,n,i,s,r),"put"),head:a(async(e,t,s,n)=>J(e,"HEAD",t,{...s,noResolveJson:!0},n,void 0,r),"head"),remove:a(async(e,t,s,n,i)=>J(e,"DELETE",t,n,i,s,r),"remove")}}a(ut,"createFetchApi");var Yt=ut("storage"),{get:Te,post:R,put:Oe,head:dt,remove:Ae}=Yt,$s=ut("vectors");var Y=class{static{a(this,"BaseApiClient")}url;headers;fetch;shouldThrowOnError=!1;namespace;constructor(e,t={},s,n="storage"){this.url=e,this.headers=nt(t),this.fetch=it(s),this.namespace=n}throwOnError(){return this.shouldThrowOnError=!0,this}setHeader(e,t){return this.headers=C(this.headers,e,t),this}async handleOperation(e){try{return{data:await e(),error:null}}catch(t){if(this.shouldThrowOnError)throw t;if($(t))return{data:null,error:t};throw t}}};var X=class{static{a(this,"StreamDownloadBuilder")}downloadFn;shouldThrowOnError;[Symbol.toStringTag]="StreamDownloadBuilder";promise=null;constructor(e,t){this.downloadFn=e,this.shouldThrowOnError=t}then(e,t){return this.getPromise().then(e,t)}catch(e){return this.getPromise().catch(e)}finally(e){return this.getPromise().finally(e)}getPromise(){return this.promise||(this.promise=this.execute()),this.promise}async execute(){try{return{data:(await this.downloadFn()).body,error:null}}catch(e){if(this.shouldThrowOnError)throw e;if($(e))return{data:null,error:e};throw e}}};var Q=class{static{a(this,"BlobDownloadBuilder")}downloadFn;shouldThrowOnError;[Symbol.toStringTag]="BlobDownloadBuilder";promise=null;constructor(e,t){this.downloadFn=e,this.shouldThrowOnError=t}asStream(){return new X(this.downloadFn,this.shouldThrowOnError)}then(e,t){return this.getPromise().then(e,t)}catch(e){return this.getPromise().catch(e)}finally(e){return this.getPromise().finally(e)}getPromise(){return this.promise||(this.promise=this.execute()),this.promise}async execute(){try{return{data:await(await this.downloadFn()).blob(),error:null}}catch(e){if(this.shouldThrowOnError)throw e;if($(e))return{data:null,error:e};throw e}}};var Re={limit:100,offset:0,sortBy:{column:"name",order:"asc"}},lt={cacheControl:"3600",contentType:"text/plain;charset=UTF-8",upsert:!1},Z=class extends Y{static{a(this,"StorageFileApi")}bucketId;constructor(e,t={},s,n){super(e,t,n,"storage"),this.bucketId=s}async uploadOrUpdate(e,t,s,n){return this.handleOperation(async()=>{let i,o={...lt,...n},c={...this.headers,...e==="POST"&&{"x-upsert":String(o.upsert)}},u=o.metadata;if(typeof Blob<"u"&&s instanceof Blob?(i=new FormData,i.append("cacheControl",o.cacheControl),u&&i.append("metadata",this.encodeMetadata(u)),i.append("",s)):typeof FormData<"u"&&s instanceof FormData?(i=s,i.has("cacheControl")||i.append("cacheControl",o.cacheControl),u&&!i.has("metadata")&&i.append("metadata",this.encodeMetadata(u))):(i=s,c["cache-control"]=`max-age=${o.cacheControl}`,c["content-type"]=o.contentType,u&&(c["x-metadata"]=this.toBase64(this.encodeMetadata(u))),(typeof ReadableStream<"u"&&i instanceof ReadableStream||i&&typeof i=="object"&&"pipe"in i&&typeof i.pipe=="function")&&!o.duplex&&(o.duplex="half")),n?.headers)for(let[g,y]of Object.entries(n.headers))c=C(c,g,y);let d=this._removeEmptyFolders(t),l=this._getFinalPath(d),f=await(e=="PUT"?Oe:R)(this.fetch,`${this.url}/object/${l}`,i,{headers:c,...o?.duplex?{duplex:o.duplex}:{}});return{path:d,id:f.Id,fullPath:f.Key}})}async upload(e,t,s){return this.uploadOrUpdate("POST",e,t,s)}async uploadToSignedUrl(e,t,s,n){let i=this._removeEmptyFolders(e),o=this._getFinalPath(i),c=new URL(this.url+`/object/upload/sign/${o}`);return c.searchParams.set("token",t),this.handleOperation(async()=>{let u,d={...lt,...n},l={...this.headers,"x-upsert":String(d.upsert)},f=d.metadata;if(typeof Blob<"u"&&s instanceof Blob?(u=new FormData,u.append("cacheControl",d.cacheControl),f&&u.append("metadata",this.encodeMetadata(f)),u.append("",s)):typeof FormData<"u"&&s instanceof FormData?(u=s,u.has("cacheControl")||u.append("cacheControl",d.cacheControl),f&&!u.has("metadata")&&u.append("metadata",this.encodeMetadata(f))):(u=s,l["cache-control"]=`max-age=${d.cacheControl}`,l["content-type"]=d.contentType,f&&(l["x-metadata"]=this.toBase64(this.encodeMetadata(f))),(typeof ReadableStream<"u"&&u instanceof ReadableStream||u&&typeof u=="object"&&"pipe"in u&&typeof u.pipe=="function")&&!d.duplex&&(d.duplex="half")),n?.headers)for(let[y,se]of Object.entries(n.headers))l=C(l,y,se);let g=await Oe(this.fetch,c.toString(),u,{headers:l,...d?.duplex?{duplex:d.duplex}:{}});return{path:i,fullPath:g.Key}})}async createSignedUploadUrl(e,t){return this.handleOperation(async()=>{let s=this._getFinalPath(e),n={...this.headers};t?.upsert&&(n["x-upsert"]="true");let i=await R(this.fetch,`${this.url}/object/upload/sign/${s}`,{},{headers:n}),o=new URL(this.url+i.url),c=o.searchParams.get("token");if(!c)throw new B("No token returned by API");return{signedUrl:o.toString(),path:e,token:c}})}async update(e,t,s){return this.uploadOrUpdate("PUT",e,t,s)}async move(e,t,s){return this.handleOperation(async()=>await R(this.fetch,`${this.url}/object/move`,{bucketId:this.bucketId,sourceKey:e,destinationKey:t,destinationBucket:s?.destinationBucket},{headers:this.headers}))}async copy(e,t,s){return this.handleOperation(async()=>({path:(await R(this.fetch,`${this.url}/object/copy`,{bucketId:this.bucketId,sourceKey:e,destinationKey:t,destinationBucket:s?.destinationBucket},{headers:this.headers})).Key}))}async createSignedUrl(e,t,s){return this.handleOperation(async()=>{let n=this._getFinalPath(e),i=typeof s?.transform=="object"&&s.transform!==null&&Object.keys(s.transform).length>0,o=await R(this.fetch,`${this.url}/object/sign/${n}`,{expiresIn:t,...i?{transform:s.transform}:{}},{headers:this.headers}),c=new URLSearchParams;s?.download&&c.set("download",s.download===!0?"":s.download),s?.cacheNonce!=null&&c.set("cacheNonce",String(s.cacheNonce));let u=c.toString();return{signedUrl:encodeURI(`${this.url}${o.signedURL}${u?`&${u}`:""}`)}})}async createSignedUrls(e,t,s){return this.handleOperation(async()=>{let n=await R(this.fetch,`${this.url}/object/sign/${this.bucketId}`,{expiresIn:t,paths:e},{headers:this.headers}),i=new URLSearchParams;s?.download&&i.set("download",s.download===!0?"":s.download),s?.cacheNonce!=null&&i.set("cacheNonce",String(s.cacheNonce));let o=i.toString();return n.map(c=>({...c,signedUrl:c.signedURL?encodeURI(`${this.url}${c.signedURL}${o?`&${o}`:""}`):null}))})}download(e,t,s){let i=typeof t?.transform=="object"&&t.transform!==null&&Object.keys(t.transform).length>0?"render/image/authenticated":"object",o=new URLSearchParams;t?.transform&&this.applyTransformOptsToQuery(o,t.transform),t?.cacheNonce!=null&&o.set("cacheNonce",String(t.cacheNonce));let c=o.toString(),u=this._getFinalPath(e),d=a(()=>Te(this.fetch,`${this.url}/${i}/${u}${c?`?${c}`:""}`,{headers:this.headers,noResolveJson:!0},s),"downloadFn");return new Q(d,this.shouldThrowOnError)}async info(e){let t=this._getFinalPath(e);return this.handleOperation(async()=>{let s=await Te(this.fetch,`${this.url}/object/info/${t}`,{headers:this.headers});return fe(s)})}async exists(e){let t=this._getFinalPath(e);try{return await dt(this.fetch,`${this.url}/object/${t}`,{headers:this.headers}),{data:!0,error:null}}catch(s){if(this.shouldThrowOnError)throw s;if($(s)){let n=s instanceof L?s.status:s instanceof M?s.originalError?.status:void 0;if(n!==void 0&&[400,404].includes(n))return{data:!1,error:s}}throw s}}getPublicUrl(e,t){let s=this._getFinalPath(e),n=new URLSearchParams;t?.download&&n.set("download",t.download===!0?"":t.download),t?.transform&&this.applyTransformOptsToQuery(n,t.transform),t?.cacheNonce!=null&&n.set("cacheNonce",String(t.cacheNonce));let i=n.toString(),c=typeof t?.transform=="object"&&t.transform!==null&&Object.keys(t.transform).length>0?"render/image":"object";return{data:{publicUrl:encodeURI(`${this.url}/${c}/public/${s}`)+(i?`?${i}`:"")}}}async remove(e){return this.handleOperation(async()=>await Ae(this.fetch,`${this.url}/object/${this.bucketId}`,{prefixes:e},{headers:this.headers}))}async purgeCache(e,t,s){return this.handleOperation(async()=>{let n=at(this._getFinalPath(e)),i=new URLSearchParams;t?.transformations&&i.set("transformations","true");let o=i.toString();return await Ae(this.fetch,`${this.url}/cdn/${n}${o?`?${o}`:""}`,{},{headers:this.headers},s)})}async list(e,t,s){return this.handleOperation(async()=>{let n=t?.sortBy?{...Re.sortBy,...t.sortBy}:Re.sortBy,i={...Re,...t,sortBy:n,prefix:e||""};return await R(this.fetch,`${this.url}/object/list/${this.bucketId}`,i,{headers:this.headers},s)})}async listV2(e,t){return this.handleOperation(async()=>{let s={...e};return await R(this.fetch,`${this.url}/object/list-v2/${this.bucketId}`,s,{headers:this.headers},t)})}encodeMetadata(e){return JSON.stringify(e)}toBase64(e){return typeof Buffer<"u"?Buffer.from(e).toString("base64"):btoa(e)}_getFinalPath(e){return`${this.bucketId}/${e.replace(/^\/+/,"")}`}_removeEmptyFolders(e){return e.replace(/^\/|\/$/g,"").replace(/\/+/g,"/")}applyTransformOptsToQuery(e,t){return t.width&&e.set("width",t.width.toString()),t.height&&e.set("height",t.height.toString()),t.resize&&e.set("resize",t.resize),t.format&&e.set("format",t.format),t.quality&&e.set("quality",t.quality.toString()),e}};var ht="2.112.3";var ft={"X-Client-Info":`storage-js/${ht}`};var q="runtime",pe=600,me=3600,b=class extends Error{static{a(this,"CloudStoragePathError")}constructor(e){super(e),this.name="CloudStoragePathError"}},ee=class{static{a(this,"WorkBuddyStorageDownload")}blob;stream;[Symbol.toStringTag]="WorkBuddyStorageDownload";constructor(e,t){this.blob=e,this.stream=t}asStream(){return this.stream()}then(e,t){return this.blob().then(e,t)}catch(e){return this.blob().catch(e)}finally(e){return this.blob().finally(e)}},H=class{static{a(this,"WorkBuddyStorageBucket")}fileApi;constructor(e){this.fileApi=e}upload(e,t,s){return P(this.fileApi.upload(v(e),t,s))}update(e,t,s){return P(this.fileApi.update(v(e),t,s))}list(e="",t){return P(this.fileApi.list(mt(e),t))}listPage(e){return P(this.fileApi.listV2({...e,prefix:mt(e?.prefix??"")}))}info(e){return P(this.fileApi.info(v(e)))}async exists(e){let t=await this.fileApi.exists(v(e));return t.error?{data:null,error:bt(t.error)}:{data:t.data,error:null}}download(e){let t=this.fileApi.download(v(e));return new ee(()=>P(t),()=>P(t.asStream()))}remove(e){if(e.length===0)throw new b("remove requires at least one object path.");return P(this.fileApi.remove(e.map(v)))}copy(e,t){return P(this.fileApi.copy(v(e),v(t)))}move(e,t){return P(this.fileApi.move(v(e),v(t)))}createSignedUrl(e,t=pe){return P(this.fileApi.createSignedUrl(v(e),gt(t)))}createSignedUrls(e,t=pe){if(e.length===0)throw new b("createSignedUrls requires at least one object path.");return P(this.fileApi.createSignedUrls(e.map(v),gt(t)))}createSignedUploadUrl(e,t){return P(this.fileApi.createSignedUploadUrl(v(e),{upsert:t?.upsert??!1}))}uploadToSignedUrl(e,t,s,n){if(!t)throw new b("signed upload token is required.");return P(this.fileApi.uploadToSignedUrl(v(e),t,s,n))}},te=class extends H{static{a(this,"WorkBuddyStorageModule")}runtime;constructor(e){let s=e.from(q);super(s),this.runtime=new H(s)}from(e=q){if(e!==q)throw new b(`Only the "${q}" storage bucket is available.`);return this.runtime}userPath(e,t){return pt("users",e,t)}sharedPath(e,t){return pt("shared",e,t)}};function yt(r,e){let t={from:a(s=>new Z(`${r.endpoint}${A.storage}`,ft,s,e),"from")};return new te(t)}a(yt,"createStorageModule");function pt(r,e,t){let s=Xt(e,"owner/user id"),n=$e(t,!1);return v(`${r}/${s}/${n}`)}a(pt,"scopedPath");function v(r){let e=$e(r,!1);if(!e.includes("/"))throw new b("Object paths must use users/<uid>/... or shared/<ownerUid>/....");let[t,s,...n]=e.split("/");if(t!=="users"&&t!=="shared"||!s||n.length===0)throw new b("Object paths must use users/<uid>/... or shared/<ownerUid>/....");return e}a(v,"validateObjectPath");function mt(r){if(r==="")return"";let e=$e(r,!0),[t,s]=e.split("/");if(t==="shared"&&!s)return"shared";if(t!=="users"&&t!=="shared"||!s)throw new b("List prefixes must start with users/<uid> or shared/<ownerUid>.");return e}a(mt,"validateObjectPrefix");function $e(r,e){if(typeof r!="string"||r.trim()==="")throw new b("Storage path must be a non-empty relative path.");let t=r.trim();for(let i=0;i<3;i+=1)try{let o=decodeURIComponent(t);if(o===t)break;t=o}catch{throw new b("Storage path contains invalid URL encoding.")}if(t.startsWith("/")||t.includes("\\")||t.includes("\0")||t.includes("//")||!e&&t.endsWith("/"))throw new b("Storage path is not a safe relative object path.");let s=e?t.replace(/\/+$/,""):t;if(s.split("/").some(i=>i===""||i==="."||i===".."))throw new b("Storage path traversal is not allowed.");return s}a($e,"validatePath");function Xt(r,e){if(!r)throw new b(`${e} is not a valid storage path segment.`);let t=r;for(let s=0;s<3;s+=1)try{let n=decodeURIComponent(t);if(n===t)break;t=n}catch{throw new b(`${e} contains invalid URL encoding.`)}if(t.includes("/")||t.includes("\\")||t.includes("\0")||t==="."||t==="..")throw new b(`${e} is not a valid storage path segment.`);return t}a(Xt,"validatePathSegment");function gt(r){if(!Number.isInteger(r)||r<=0||r>me)throw new b(`Signed URL expiry must be an integer between 1 and ${me} seconds.`);return r}a(gt,"validateSignedURLTTL");async function P(r){let e=await r;return e.error?{data:null,error:bt(e.error)}:e.data===null?{data:null,error:{name:"CloudStorageResponseError",message:"Storage API returned neither data nor an error."}}:{data:e.data,error:null}}a(P,"mapStorageResult");function bt(r){if(r instanceof Error){let e=r;return{name:e.name,message:e.message,status:e.status,statusCode:e.statusCode,code:e.code,cause:r}}return{name:"CloudStorageError",message:String(r),cause:r}}a(bt,"normalizeStorageError");var re=class{static{a(this,"WorkBuddyCloudClient")}config;database;auth;storage;llm;constructor(e,t={}){this.config=e,this.auth=new D(e,ye(e,ie),{storage:t.storage});let s=ye(e,()=>this.auth.getAccessToken());this.database=Je(e,s),this.storage=yt(e,s),this.llm=new F(e,s)}get endpoint(){return this.config.endpoint}get oauthRelayBaseUrl(){return this.config.oauthRelayBaseUrl}};function wt(r){return new re(Le(r),{storage:r.storage})}a(wt,"createWorkBuddyCloud");function St(r){return r.kind==="unauthenticated"||r.code==="invalid_grant"}a(St,"shouldClearCredentials");return _t(Qt);})();
+//# sourceMappingURL=index.global.js.map
+</script>
+<script>
+/* ---------------------------------------------------------------------------
+   非官方域名自动跳转到官方地址
+
+   本文件在 GitHub Pages 等自有域名下也能打开，但云服务只放行它自己的发布域名
+   （服务端精确匹配 Origin）。实测：
+     Origin = 官方发布域名  -> 200
+     Origin = 其它任意域名  -> 403 access_denied
+     完全不带 Origin       -> 401
+   浏览器的 Origin 由浏览器生成，脚本无法伪造；服务端转发也不带该头，同样被拒。
+   所以在这些域名下无法登录，直接跳转到能用的官方地址。
+
+   用 location.replace 而非 href：跳转不留下历史记录，
+   用户按「后退」不会又跳一次。local/dev 本地调试时可用 ?stay=1 关闭自动跳转。
+--------------------------------------------------------------------------- */
+(function () {
+  var OFFICIAL = "https://calorie-tracker-19816.app.workbuddy.host/";
+  var host = location.hostname;
+  // 官方域名放行。注意：双击文件打开时 hostname 为空串，同样需要跳转，
+  // 所以这里只排除「确实是官方域名」的情况，不能把空值也放过去。
+  if (host && host.indexOf("workbuddy.host") >= 0) return;
+  if (/[?&]stay=1/.test(location.search)) return;               /* 显式要求停留（本地调试） */
+
+  var from = (host || "local-file") + location.pathname;
+  var target = OFFICIAL + "?from=" + encodeURIComponent(from);
+  try {
+    location.replace(target);
+    return;
+  } catch (e) { /* 极少数环境禁止跳转，继续走兜底提示 */ }
+
+  // 兜底：跳转被拦截时至少给出可点击的入口
+  document.documentElement.innerHTML =
+    '<head><meta charset="utf-8"><title>跳转中…</title></head>' +
+    '<body style="font-family:sans-serif;padding:40px;text-align:center">' +
+    '<p>正在前往官方地址…若未自动跳转，请点击</p>' +
+    '<a href="' + target + '">这里</a></body>';
+})();
+</script>
+<style>
+  :root{
+    --bg:#f5f6fa; --card:#fff; --primary:#2563eb; --primary-light:#dbeafe;
+    --text:#1f2937; --muted:#6b7280; --border:#e5e7eb;
+    --green:#059669; --orange:#d97706; --red:#dc2626; --purple:#7c3aed;
+  }
+  *{box-sizing:border-box;margin:0;padding:0}
+  body{font-family:"PingFang SC","Microsoft YaHei","Segoe UI",sans-serif;background:var(--bg);color:var(--text);min-height:100vh;padding:24px 14px 60px}
+  .wrap{max-width:940px;margin:0 auto}
+  h1{font-size:24px;text-align:center}
+  .sub{text-align:center;color:var(--muted);font-size:13px;margin:6px 0 18px}
+  .tabs{display:flex;gap:8px;margin-bottom:16px;background:#eceff5;padding:4px;border-radius:10px}
+  .tabs button{flex:1;padding:10px;border:none;background:transparent;border-radius:8px;font-size:14px;color:var(--muted);cursor:pointer;transition:.15s}
+  .tabs button.active{background:#fff;color:var(--primary);font-weight:600;box-shadow:0 1px 3px rgba(0,0,0,.08)}
+  .card{background:var(--card);border:1px solid var(--border);border-radius:14px;padding:20px;margin-bottom:16px;box-shadow:0 1px 3px rgba(0,0,0,.04)}
+  .card h2{font-size:15px;color:var(--primary);margin-bottom:14px}
+  label{display:block;font-size:13px;color:var(--muted);margin-bottom:6px}
+  input,select{width:100%;padding:10px 12px;border:1px solid var(--border);border-radius:8px;font-size:15px;background:#fafafa;outline:none}
+  input:focus,select:focus{border-color:var(--primary);background:#fff}
+  .seg{display:flex;gap:8px}
+  .seg button{flex:1;padding:10px 0;border:1px solid var(--border);border-radius:8px;background:#fafafa;font-size:14px;cursor:pointer;color:var(--muted)}
+  .seg button.active{background:var(--primary-light);border-color:var(--primary);color:var(--primary);font-weight:600}
+  .grid2{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+  .grid3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:12px}
+  @media(max-width:640px){.grid2,.grid3{grid-template-columns:1fr}}
+  .row{margin-bottom:12px}
+  .btn{width:100%;padding:12px;background:var(--primary);color:#fff;border:none;border-radius:8px;font-size:16px;font-weight:600;cursor:pointer}
+  .btn:hover{background:#1d4ed8}
+  .btn-sm{padding:6px 12px;font-size:13px;border-radius:6px;border:1px solid var(--border);background:#fafafa;cursor:pointer;color:var(--muted)}
+  .btn-sm.on{background:var(--primary-light);border-color:var(--primary);color:var(--primary);font-weight:600}
+  .stat{background:#f9fafb;border-radius:10px;padding:12px;text-align:center}
+  .stat .v{font-size:20px;font-weight:700}
+  .stat .k{font-size:12px;color:var(--muted);margin-top:2px}
+  /* 搜索 */
+  .search-line{display:flex;gap:8px;align-items:center;margin-bottom:12px}
+  .search-line input{flex:1}
+  #results{max-height:320px;overflow:auto;border:1px solid var(--border);border-radius:10px}
+  .item{display:flex;justify-content:space-between;align-items:center;gap:10px;padding:10px 12px;border-bottom:1px solid #f1f2f6;cursor:pointer}
+  .item:last-child{border-bottom:none}
+  .item:hover{background:#f8fafc}
+  .item .n{font-size:14px;font-weight:500}
+  .item .m{font-size:12px;color:var(--muted);margin-top:2px}
+  .item .e{font-size:14px;font-weight:700;color:var(--orange);white-space:nowrap}
+  .tag{font-size:11px;padding:1px 6px;border-radius:4px;background:#eef2ff;color:var(--primary);margin-left:6px}
+  .tag.off{background:#ecfdf5;color:var(--green)}
+  .empty{padding:24px;text-align:center;color:var(--muted);font-size:13px}
+  /* 记录 */
+  .log{display:flex;justify-content:space-between;align-items:center;padding:9px 0;border-bottom:1px dashed var(--border)}
+  .log:last-child{border-bottom:none}
+  .log .ln{font-size:14px}
+  .log .lm{font-size:12px;color:var(--muted)}
+  .del{background:none;border:none;color:#cbd5e1;cursor:pointer;font-size:18px;padding:0 4px}
+  .del:hover{color:var(--red)}
+  /* 进度 */
+  .bar{height:10px;background:#eef0f4;border-radius:6px;overflow:hidden;margin:6px 0 12px}
+  .bar i{display:block;height:100%;border-radius:6px;transition:width .3s}
+  .prog-h{font-size:13px;display:flex;justify-content:space-between;color:var(--muted)}
+  .prog-h b{color:var(--text)}
+  .macro-bar{display:flex;height:22px;border-radius:6px;overflow:hidden;margin-top:6px}
+  .macro-bar div{display:flex;align-items:center;justify-content:center;color:#fff;font-size:11px;font-weight:600}
+  .note{font-size:12px;color:var(--muted);line-height:1.7;margin-top:10px}
+  .hidden{display:none}
+  .spinner{text-align:center;padding:20px;color:var(--muted);font-size:13px}
+  /* ===== 云端版新增样式 ===== */
+/* .hidden 必须能盖过任何元素自身的 display —— #authView 这类 ID 选择器
+   （权重 100）会压过普通类选择器（权重 10），曾导致登录成功后弹窗不消失。 */
+.hidden{display:none !important}
+/* 自有域名未授权提示 */
+.gate-wrap{position:fixed;inset:0;z-index:200;background:rgba(15,23,42,.55);
+  display:flex;align-items:center;justify-content:center;padding:20px}
+.gate-card{width:100%;max-width:560px;background:#fff;border-radius:16px;
+  box-shadow:0 24px 60px rgba(0,0,0,.28);padding:28px 26px;line-height:1.8}
+.gate-card h2{font-size:18px;color:var(--primary);margin-bottom:12px}
+.gate-card p{font-size:13.5px;color:var(--ink-2,#43506B);margin:10px 0}
+.gate-card ol{margin:12px 0 0 18px;font-size:13px;color:var(--ink-2,#43506B)}
+.gate-card ol li{margin-bottom:7px}
+.gate-card code{background:#eef2f8;border-radius:4px;padding:1px 6px;
+  font-size:12.5px;color:var(--ink,#16223A)}
+.gate-card .gate-tip{background:#f7f9fc;border:1px solid var(--border,#e5e7eb);
+  border-radius:10px;padding:11px 13px;font-size:12.5px;color:var(--muted);margin-top:14px}
+.gate-card .gate-actions{display:flex;gap:10px;flex-wrap:wrap;margin-top:18px}
+  .toast{position:fixed;left:50%;top:20px;transform:translate(-50%,-24px);z-index:9999;
+    background:rgba(31,41,55,.95);color:#fff;padding:10px 20px;border-radius:999px;font-size:14px;
+    opacity:0;pointer-events:none;transition:.3s;max-width:86vw;text-align:center}
+  .toast.show{opacity:1;transform:translate(-50%,0)}
+  .toast.err{background:#dc2626}
+  .toast.ok{background:#059669}
+  .topbar{max-width:940px;margin:0 auto 16px;display:flex;align-items:center;justify-content:space-between;
+    gap:10px;background:#fff;border:1px solid var(--border);border-radius:12px;padding:10px 14px;
+    box-shadow:0 1px 3px rgba(0,0,0,.04)}
+  .topbar .who{display:flex;align-items:center;gap:8px;font-size:13px;color:var(--muted);min-width:0}
+  .topbar .who b{color:var(--text);font-weight:600;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;max-width:44vw}
+  .topbar .dot{width:8px;height:8px;border-radius:50%;background:var(--green);flex:none}
+  .topbar .sync{font-size:12px;color:var(--muted);white-space:nowrap}
+  .auth-wrap{position:fixed;inset:0;z-index:100;overflow:auto;
+    background:linear-gradient(150deg,#dbeafe 0%,#eef2ff 46%,#f5f6fa 100%);
+    display:flex;align-items:center;justify-content:center;padding:24px 14px}
+  .auth-card{width:100%;max-width:440px;background:#fff;border:1px solid var(--border);border-radius:18px;
+    box-shadow:0 20px 50px rgba(37,99,235,.14);padding:26px 22px}
+  .auth-card h2{font-size:19px;color:var(--primary);margin-bottom:6px}
+  .auth-card .lead{font-size:13px;color:var(--muted);line-height:1.7;margin-bottom:16px}
+  .auth-tabs{display:flex;gap:6px;background:#f1f4f9;padding:4px;border-radius:10px;margin-bottom:16px}
+  .auth-tabs button{flex:1;padding:9px 0;border:none;background:transparent;border-radius:8px;
+    font-size:13px;color:var(--muted);cursor:pointer;transition:.15s}
+  .auth-tabs button.active{background:#fff;color:var(--primary);font-weight:600;box-shadow:0 1px 3px rgba(0,0,0,.08)}
+  .field{margin-bottom:12px}
+  .err{font-size:12.5px;color:var(--red);min-height:18px;line-height:1.5}
+  .hint{font-size:12px;color:var(--muted);line-height:1.7;margin-top:10px}
+  .rowbtns{display:flex;gap:8px;margin-top:4px}
+  .link{font-size:12.5px;color:var(--primary);cursor:pointer;text-decoration:underline;background:none;border:none;padding:0}
+  .cf-row{display:flex;align-items:center;justify-content:space-between;gap:10px;padding:9px 0;border-bottom:1px dashed var(--border)}
+  .cf-row:last-child{border-bottom:none}
+  .cf-row .thumb{width:46px;height:46px;border-radius:8px;object-fit:cover;border:1px solid var(--border);flex:none;background:#f3f4f6}
+  .cf-row .cf-main{flex:1;min-width:0}
+  .cf-row .ln{font-size:14px}
+  .cf-row .lm{font-size:12px;color:var(--muted);margin-top:2px}
+</style>
+</head>
+<body>
+<div class="wrap">
+<div class="topbar hidden" id="topbar">
+  <div class="who"><span class="dot"></span><b id="userEmail">—</b><span class="sync" id="syncState"></span></div>
+  <button class="btn-sm" onclick="doSignOut()">退出登录</button>
+</div>
+<div class="toast" id="toast"></div>
+  <h1>每日热量计算器</h1>
+  <p class="sub">内置 200+ 中式食物库 + 在线包装食品查询，可记录当日饮食</p>
+  <div class="tabs">
+    <button id="tabLog" class="active" onclick="switchTab('log')">今日饮食</button>
+    <button id="tabScan" onclick="switchTab('scan')">拍照录入库</button>
+    <button id="tabMe" onclick="switchTab('me')">我的数据</button>
+  </div>
+  <!-- ============ 今日饮食 ============ -->
+  <div id="pageLog">
+    <div class="card">
+      <h2>汇总（今日）</h2>
+      <div class="prog-h"><span>热量</span><span><b id="sumKcal">0</b> / <span id="goalKcal">0</span> 千卡</span></div>
+      <div class="bar"><i id="barKcal" style="width:0%;background:var(--primary)"></i></div>
+      <div class="grid3">
+        <div class="stat"><div class="v" id="sumP">0 g</div><div class="k">蛋白质</div></div>
+        <div class="stat"><div class="v" id="sumF">0 g</div><div class="k">脂肪</div></div>
+        <div class="stat"><div class="v" id="sumC">0 g</div><div class="k">碳水</div></div>
+      </div>
+      <div class="macro-bar">
+        <div id="mbarP" style="background:var(--primary);width:33%">蛋白</div>
+        <div id="mbarC" style="background:var(--orange);width:34%">碳水</div>
+        <div id="mbarF" style="background:var(--red);width:33%">脂肪</div>
+      </div>
+      <div class="note" id="advice"></div>
+    </div>
+    <div class="card">
+      <h2>添加食物</h2>
+      <div class="search-line">
+        <button class="btn-sm on" id="srcLocal" onclick="setSrc('local')">本地食物库</button>
+        <button class="btn-sm" id="srcOff" onclick="setSrc('off')">在线查包装食品</button>
+      </div>
+      <div class="search-line">
+        <input type="text" id="q" placeholder="输入食物名称，如 米饭 / 鸡胸肉 / 可乐" oninput="onSearch()" onkeydown="if(event.key==='Enter')onSearch()">
+        <button class="btn-sm" onclick="onSearch()" style="padding:10px 16px">搜索</button>
+      </div>
+      <div class="search-line" id="barcodeLine" style="display:none">
+        <input type="text" id="barcode" placeholder="或输入商品条码（EAN-13）" onkeydown="if(event.key==='Enter')searchBarcode()">
+        <button class="btn-sm" onclick="searchBarcode()" style="padding:10px 16px">查条码</button>
+      </div>
+      <div id="results"><div class="empty">输入关键词开始搜索</div></div>
+      <div class="row" style="margin-top:14px;display:flex;gap:10px;align-items:flex-end">
+        <div style="flex:2"><label>份量（克）</label><input type="number" id="grams" value="100" min="1"></div>
+        <div style="flex:1"><button class="btn" id="addBtn" style="padding:11px" onclick="addFood()">加入记录</button></div>
+      </div>
+      <div class="note" id="selInfo">尚未选择食物。点击上方结果条目可选中。</div>
+    </div>
+    <div class="card">
+      <h2>饮食记录 <span id="logCount" style="color:var(--muted);font-weight:400"></span></h2>
+      <div id="logList"><div class="empty">今天还没有记录</div></div>
+    </div>
+  </div>
+  <!-- ============ 拍照识别录入 ============ -->
+  <div id="pageScan" class="hidden">
+    <div class="card">
+      <h2>① 拍照 / 上传营养成分表</h2>
+      <div class="row" style="display:flex;gap:8px;flex-wrap:wrap">
+        <input type="file" id="photo" accept="image/*" capture="environment" onchange="loadPhoto(event)" style="flex:2;min-width:200px">
+        <button class="btn-sm" onclick="document.getElementById('photo').click()" style="padding:10px 16px">选择图片</button>
+      </div>
+      <div id="previewBox" style="margin-top:12px;display:none">
+        <canvas id="cv" style="max-width:100%;border:1px solid var(--border);border-radius:10px;background:#fafafa"></canvas>
+      </div>
+      <div class="row" style="margin-top:12px">
+        <button class="btn" onclick="startRecognize()" id="ocrBtn">开始识别</button>
+      </div>
+      <div class="row" style="margin-top:10px;display:flex;gap:8px;flex-wrap:wrap">
+        <button class="btn-sm on" id="engLocal" onclick="setEngine('local')">本地 OCR（离线免费）</button>
+        <button class="btn-sm" id="engAI" onclick="setEngine('ai')">智谱视觉大模型（更准）</button>
+      </div>
+      <div id="aiCfg" class="hidden" style="margin-top:12px;border-top:1px dashed var(--border);padding-top:12px">
+        <div class="row"><label>接口地址（本地代理 / 你自己的后端）</label>
+          <input type="text" id="proxyUrl" value="http://127.0.0.1:8787" placeholder="如 http://127.0.0.1:8787 或 https://api.yourdomain.com" onchange="saveCfg()"></div>
+        <div class="row" style="display:flex;gap:8px;flex-wrap:wrap">
+          <button class="btn-sm" onclick="fillPreset('supabase')">一键填入 Supabase</button>
+          <button class="btn-sm" onclick="fillPreset('local')">一键填入本地代理</button>
+        </div>
+        <div class="row"><label>识别接口路径（后端暴露的路由）</label>
+          <input type="text" id="apiPath" value="/vision" placeholder="/vision" onchange="saveCfg()"></div>
+        <div class="row"><label>后端鉴权 Token（可选：你的后端若要求登录态，填这里，会以 Authorization: Bearer 发送）</label>
+          <input type="password" id="authToken" placeholder="可留空" onchange="saveCfg()"></div>
+        <div class="row"><label>智谱 API Key（后端已配置时可留空；前端填写仅存本机浏览器）</label>
+          <input type="password" id="zhipuKey" placeholder="可留空：由后端从环境变量注入" onchange="saveCfg()"></div>
+        <div class="row"><label>模型</label>
+          <select id="modelSel" onchange="onModelChange()">
+            <optgroup label="免费（推荐先用这些）">
+              <option value="glm-4.6v-flash">glm-4.6v-flash · 免费 · 通用视觉，默认推荐</option>
+              <option value="glm-4.1v-thinking-flash">glm-4.1v-thinking-flash · 免费 · 带推理，复杂表格更准（慢一点）</option>
+              <option value="glm-4v-flash">glm-4v-flash · 免费 · 老版，上下文仅 4K</option>
+            </optgroup>
+            <optgroup label="OCR 专用（表格识别最强，极便宜）">
+              <option value="glm-ocr">glm-ocr · 0.2 元/百万 token · 约 1 元 2000 张图</option>
+            </optgroup>
+            <optgroup label="高性能（付费，按量计费）">
+              <option value="glm-4.6v-flashx">glm-4.6v-flashx · 0.15 / 1.5 元 · 轻量增强版</option>
+              <option value="glm-4.6v">glm-4.6v · 1 / 3 元 · 106B 旗舰视觉</option>
+              <option value="glm-5.3-flash">glm-5.3-flash · 0.8 / 2.8 元 · 原生多模态（图/视频/文件）</option>
+              <option value="glm-4.5v">glm-4.5v · 2 / 6 元</option>
+              <option value="glm-4v-plus-0111">glm-4v-plus-0111 · 4 / 4 元</option>
+              <option value="glm-5v-turbo">glm-5v-turbo · 5 / 22 元 · 多模态 Coding 基座，200K</option>
+            </optgroup>
+            <option value="__custom">自定义模型名…</option>
+          </select>
+        </div>
+        <div class="row hidden" id="customModelRow">
+          <input type="text" id="modelName" placeholder="输入模型 ID，如 glm-4.1v-thinking-flashx" onchange="saveCfg()">
+        </div>
+        <div class="note" id="modelTip"></div>
+        <button class="btn-sm" onclick="testConn()" id="testBtn" style="width:100%;padding:10px">测试连接（验证代理 + Key + 模型）</button>
+        <div class="note"><b>模式 A · 本地代理（自用）</b>：① 双击 <b>start-proxy.bat</b>；② 浏览器打开 <b>http://127.0.0.1:8787/</b>；③ 填 Key 后识别。
+        <br><b>模式 B · Supabase（免本机启动）</b>：先运行 <b>deploy-supabase.bat</b> 部署 vision 函数并设置 <code>ZHIPU_API_KEY</code> 密钥，然后点上方「一键填入 Supabase」——接口地址 <code>https://xrrutssstigcfgzyadhm.supabase.co/functions/v1</code>、路径 <code>/vision</code>、鉴权 Token 填 publishable key、智谱 Key <b>留空</b>（由云端注入）。页面会自动附带 Supabase 网关所需的 <code>apikey</code> 头。
+        <br>同一个智谱 Key 可调用下列所有模型；免费模型无 token 上限但并发仅 1，别连点。若某模型报 1211/1212（模型不存在或不支持该调用方式），换回 <code>glm-4.6v-flash</code> 即可。</div>
+      </div>
+      <div class="note" style="margin-top:10px" id="ocrStatus">本地 OCR 首次使用需从 CDN 下载中文识别模型（约 20MB，需联网），之后浏览器会缓存。手机可直接调用相机拍照。</div>
+    </div>
+    <div class="card">
+      <h2>② 识别结果（可直接修改纠错）</h2>
+      <div class="row"><label>原始识别文字</label>
+        <textarea id="ocrText" rows="5" style="width:100%;padding:10px;border:1px solid var(--border);border-radius:8px;font-size:13px;font-family:inherit;background:#fafafa" placeholder="识别后显示，可手动粘贴或修正营养成分表文字"></textarea>
+      </div>
+      <div class="row" style="display:flex;gap:8px;flex-wrap:wrap">
+        <button class="btn-sm" onclick="parseText()">从文字中解析</button>
+        <button class="btn-sm" onclick="clearForm()">清空表单</button>
+      </div>
+    </div>
+    <div class="card">
+      <h2>③ 校对后存入食物库</h2>
+      <div class="row"><label>食物名称 *</label><input type="text" id="fName" placeholder="如：XX牌全麦吐司"></div>
+      <div class="grid2">
+        <div class="row"><label>能量（千卡 / 每100g）*</label>
+          <input type="number" id="fKcal" step="0.1" oninput="syncFromKcal()">
+        </div>
+        <div class="row"><label>或填 能量（kJ 千焦 / 每100g）</label>
+          <input type="number" id="fKj" step="1" oninput="syncFromKj()" placeholder="自动换算为千卡">
+        </div>
+        <div class="row"><label>蛋白质（g / 每100g）</label><input type="number" id="fP" step="0.1" oninput="autoKcal()"></div>
+        <div class="row"><label>脂肪（g / 每100g）</label><input type="number" id="fF" step="0.1" oninput="autoKcal()"></div>
+        <div class="row"><label>碳水化合物（g / 每100g）</label><input type="number" id="fC" step="0.1" oninput="autoKcal()"></div>
+        <div class="row"><label>钠（mg / 每100g，可选）</label><input type="number" id="fNa" step="1"></div>
+        <div class="row"><label>常见份量名称</label><input type="text" id="fUnit" placeholder="如：一片 / 一包"></div>
+        <div class="row"><label>份量克重（g）</label><input type="number" id="fUnitG" value="100" step="1"></div>
+      </div>
+      <div class="note" id="parseTip">留空能量时，会按 蛋白×4 + 碳水×4 + 脂肪×9 自动估算。</div>
+      <button class="btn" id="saveCustomBtn" onclick="saveCustom()">存入我的食物库</button>
+    </div>
+    <div class="card">
+      <h2>我的食物库 · 自建条目 <span id="cfCount" style="color:var(--muted);font-weight:400"></span></h2>
+      <div id="cfList"><div class="empty">还没有自建食物</div></div>
+      <div style="display:flex;gap:8px;margin-top:14px;flex-wrap:wrap">
+        <button class="btn-sm" onclick="exportFoods()">导出 JSON（备份）</button>
+        <button class="btn-sm" onclick="document.getElementById('impFile').click()">导入 JSON</button>
+        <input type="file" id="impFile" accept=".json" style="display:none" onchange="importFoods(event)">
+        <button class="btn-sm" onclick="exportCsv()">导出 CSV（Excel 可打开）</button>
+      </div>
+      <div class="note">自建条目保存在你的云端账号，换设备登录同一邮箱即可看到；也可以导出 JSON / CSV 做本地备份。</div>
+    </div>
+  </div>
+  <!-- ============ 我的数据 ============ -->
+  <div id="pageMe" class="hidden">
+    <div class="card">
+      <h2>基本信息</h2>
+      <div class="row">
+        <label>性别</label>
+        <div class="seg" id="genderSeg">
+          <button data-gender="male" class="active">男</button>
+          <button data-gender="female">女</button>
+        </div>
+      </div>
+      <div class="grid2">
+        <div class="row"><label>年龄（岁）</label><input type="number" id="age" value="25" min="10" max="100"></div>
+        <div class="row"><label>身高（cm）</label><input type="number" id="height" value="170" min="80" max="250"></div>
+        <div class="row"><label>体重（kg）</label><input type="number" id="weight" value="65" min="25" max="300" step="0.1"></div>
+        <div class="row"><label>活动水平</label>
+          <select id="activity">
+            <option value="1.2">久坐不动（几乎不运动）</option>
+            <option value="1.375">轻度活动（每周 1–3 次）</option>
+            <option value="1.55" selected>中度活动（每周 3–5 次）</option>
+            <option value="1.725">高度活动（每周 6–7 次）</option>
+            <option value="1.9">极高强度（体力劳动/每天训练）</option>
+          </select>
+        </div>
+      </div>
+      <div class="row">
+        <label>目标</label>
+        <div class="seg" id="goalSeg">
+          <button data-goal="lose">减脂</button>
+          <button data-goal="maintain" class="active">维持</button>
+          <button data-goal="gain">增肌</button>
+        </div>
+      </div>
+    </div>
+    <div class="card">
+      <h2>计算结果</h2>
+      <div class="grid2">
+        <div class="stat"><div class="v" id="bmrNum">0</div><div class="k">基础代谢 BMR</div></div>
+        <div class="stat"><div class="v" id="tdeeNum">0</div><div class="k">每日总消耗 TDEE</div></div>
+        <div class="stat"><div class="v" id="bmiNum">0</div><div class="k">BMI 指数</div></div>
+        <div class="stat"><div class="v" id="bmiLevel">-</div><div class="k">体重状态</div></div>
+      </div>
+      <div class="note">
+        目标摄入：<b id="targetTxt">-</b>。BMR 采用 Mifflin-St Jeor 公式；减脂按每日缺口 500 千卡、增肌按盈余 250 千卡，且不低于基础代谢的 80%。
+        推荐供能比：蛋白质 30% / 碳水 45% / 脂肪 25%。结果仅为估算，如有疾病或特殊需求请咨询医生或营养师。
+      </div>
+    </div>
+  </div>
+</div>
+<!-- ============ 登录 / 注册 ============ -->
+<div class="auth-wrap" id="authView">
+  <div class="auth-card">
+    <h2>每日热量计算器</h2>
+    <p class="lead">登录后，饮食记录、自建食物库与身体数据都会保存到你的云端账号；换设备用同一邮箱登录即可继续。</p>
+    <div class="auth-tabs">
+      <button type="button" id="tabL" class="active" onclick="authTab('l')">密码登录</button>
+      <button type="button" id="tabO" onclick="authTab('o')">验证码登录</button>
+      <button type="button" id="tabS" onclick="authTab('s')">注册</button>
+    </div>
+
+    <form id="paneL" onsubmit="return doSignInPassword(event)">
+      <div class="field"><label>邮箱</label><input type="email" id="liEmail" placeholder="you@example.com" autocomplete="username"></div>
+      <div class="field"><label>密码</label><input type="password" id="liPass" placeholder="至少 6 位" autocomplete="current-password"></div>
+      <div class="err" id="liErr"></div>
+      <button class="btn" type="submit" id="liBtn">登 录</button>
+      <div class="hint"><button class="link" type="button" onclick="toggleReset()">忘记密码？</button></div>
+      <div id="resetBox" class="hidden" style="border-top:1px dashed var(--border);padding-top:12px;margin-top:10px">
+        <div class="field"><label>重置账号邮箱</label><input type="email" id="rsEmail" placeholder="注册时使用的邮箱"></div>
+        <div class="field"><label>邮箱验证码</label><input type="text" id="rsCode" placeholder="点下方按钮发送到邮箱" inputmode="numeric"></div>
+        <div class="field"><label>新密码（至少 6 位）</label><input type="password" id="rsPass" placeholder="设置一个新密码" autocomplete="new-password"></div>
+        <div class="err" id="rsErr"></div>
+        <div class="rowbtns">
+          <button class="btn-sm" type="button" id="rsSend" onclick="doSendReset()" style="flex:1;padding:11px">发送重置验证码</button>
+          <button class="btn-sm" type="button" id="rsDo" onclick="doResetPassword()" style="flex:1;padding:11px">重置并登录</button>
+        </div>
+      </div>
+    </form>
+
+    <form id="paneO" class="hidden" onsubmit="return doVerifyOtpLogin(event)">
+      <div class="field"><label>邮箱</label><input type="email" id="otEmail" placeholder="you@example.com"></div>
+      <div class="field"><label>邮箱验证码</label><input type="text" id="otCode" placeholder="邮件里的验证码" inputmode="numeric" autocomplete="one-time-code"></div>
+      <div class="err" id="otErr"></div>
+      <div class="rowbtns">
+        <button class="btn-sm" type="button" id="otSend" onclick="doSendOtpLogin()" style="flex:1;padding:11px">发送验证码</button>
+        <button class="btn" type="submit" id="otBtn" style="flex:1">登 录</button>
+      </div>
+    </form>
+
+    <form id="paneS" class="hidden" onsubmit="return doSignup(event)">
+      <div class="field"><label>邮箱</label><input type="email" id="suEmail" placeholder="you@example.com"></div>
+      <div class="field"><label>设置密码（至少 6 位）</label><input type="password" id="suPass" placeholder="用于以后用密码登录" autocomplete="new-password"></div>
+      <div class="field"><label>邮箱验证码</label><input type="text" id="suCode" placeholder="点击下方按钮发送" inputmode="numeric"></div>
+      <div class="err" id="suErr"></div>
+      <div class="rowbtns">
+        <button class="btn-sm" type="button" id="suSend" onclick="doSendSignupOtp()" style="flex:1;padding:11px">发送邮箱验证码</button>
+        <button class="btn" type="submit" id="suBtn" style="flex:1">注册并登录</button>
+      </div>
+    </form>
+
+    <div class="hint" id="authHint">数据保存在你自己的云端账号下，别的账号读不到。请通过已发布的线上地址访问；登录 / 注册依赖邮箱验证码与密码。</div>
+    <div class="hint" id="sdkTip" style="display:none"></div>
+    <div class="hint" style="opacity:.7;font-size:11px">
+      运行状态：<span id="storageKind">检测中…</span>　·　<span id="sdkState">检测中…</span>
+    </div>
+  </div>
+</div>
+<script>
+/* ================= 本地中式食物库（每100g可食部） ================= */
+/* 格式: [名称, 千卡, 蛋白g, 脂肪g, 碳水g, 常见份量名, 份量克重, 分类] */
+const FOODS = [
+// 主食
+["米饭（蒸，熟）",116,2.6,0.3,25.9,"一碗",200,"主食"],["米饭（生米）",346,7.4,0.8,77.9,"一杯",180,"主食"],
+["杂粮饭（熟）",120,3.5,0.8,25.0,"一碗",200,"主食"],["白粥",46,1.1,0.2,9.9,"一碗",300,"主食"],
+["小米粥",46,1.4,0.4,8.4,"一碗",300,"主食"],["馒头",223,7.0,1.1,47.0,"一个",100,"主食"],
+["花卷",214,6.4,1.0,45.0,"一个",100,"主食"],["面条（生）",286,8.3,0.7,61.9,"一份",100,"主食"],
+["挂面",346,11.4,0.9,74.5,"一份",100,"主食"],["面条（煮熟）",110,2.7,0.2,24.3,"一碗",300,"主食"],
+["兰州牛肉面",96,4.5,2.5,15.0,"一碗",500,"主食"],["炒面",175,5.5,6.5,23.0,"一盘",300,"主食"],
+["蛋炒饭",163,5.5,5.5,22.7,"一盘",300,"主食"],["意大利面（熟）",158,5.8,0.9,31.0,"一份",200,"主食"],
+["米粉/河粉（熟）",110,1.6,0.3,24.0,"一碗",350,"主食"],["螺蛳粉",125,4.0,4.5,17.0,"一份",400,"主食"],
+["年糕",154,3.3,0.6,34.0,"一份",150,"主食"],["全麦面包",246,8.8,3.5,45.0,"一片",35,"主食"],
+["白吐司",280,8.5,4.0,52.0,"一片",35,"主食"],["烧饼",326,9.0,9.5,52.0,"一个",80,"主食"],
+["油条",388,6.9,17.6,51.0,"一根",60,"主食"],["猪肉白菜饺子",220,9.0,8.0,28.0,"一个",20,"主食"],
+["小笼包",220,8.5,9.0,27.0,"一个",20,"主食"],["肉包子",227,7.5,7.0,34.0,"一个",80,"主食"],
+["素菜包子",170,5.5,3.0,31.0,"一个",80,"主食"],["肉粽",200,6.0,6.0,32.0,"一个",120,"主食"],
+["红薯（蒸）",99,1.6,0.2,23.0,"一个",150,"主食"],["土豆（蒸）",87,2.0,0.1,20.0,"一个",150,"主食"],
+["玉米（鲜，煮）",106,4.0,1.2,22.8,"一根",200,"主食"],["山药",57,1.9,0.2,12.4,"一根",150,"主食"],
+["南瓜",22,0.7,0.1,5.3,"一块",150,"主食"],["燕麦片（干）",377,15.0,6.7,61.0,"一份",40,"主食"],
+["藜麦（熟）",120,4.4,1.9,21.3,"一份",150,"主食"],
+// 肉蛋
+["鸡胸肉（生）",133,19.4,5.0,2.5,"一块",150,"肉蛋"],["鸡胸肉（水煮）",118,23.0,1.5,0.0,"一块",120,"肉蛋"],
+["鸡腿（带皮，生）",181,17.0,12.0,0.5,"一个",100,"肉蛋"],["鸡翅（烤）",194,17.0,11.0,4.0,"一个",40,"肉蛋"],
+["炸鸡（原味鸡块）",250,20.0,15.0,8.0,"一块",100,"肉蛋"],["猪里脊（生）",155,20.2,7.9,0.7,"一份",100,"肉蛋"],
+["猪后腿肉（瘦）",143,20.0,6.2,1.0,"一份",100,"肉蛋"],["猪五花肉（生）",508,7.7,53.0,2.4,"一份",100,"肉蛋"],
+["红烧肉",470,7.0,45.0,8.0,"一份",100,"肉蛋"],["红烧排骨",264,15.0,18.0,8.0,"一份",150,"肉蛋"],
+["培根",181,22.4,9.0,2.6,"一片",20,"肉蛋"],["火腿肠",212,14.0,15.0,8.0,"一根",45,"肉蛋"],
+["香肠",301,14.0,22.0,15.0,"一根",50,"肉蛋"],["牛肉（瘦，生）",106,20.2,2.3,1.2,"一份",100,"肉蛋"],
+["牛腩",250,17.0,20.0,0.0,"一份",100,"肉蛋"],["西冷牛排（煎）",216,26.0,12.0,0.0,"一份",200,"肉蛋"],
+["羊肉（瘦）",118,20.5,3.9,0.2,"一份",100,"肉蛋"],["羊肉串（烤）",234,20.0,15.0,3.0,"一串",30,"肉蛋"],
+["鸭肉",240,15.5,19.7,0.2,"一份",100,"肉蛋"],["北京烤鸭",436,17.0,38.0,7.0,"一份",100,"肉蛋"],
+["鸡蛋",144,13.3,8.8,2.8,"一个",50,"肉蛋"],["水煮蛋",147,13.5,9.5,1.5,"一个",50,"肉蛋"],
+["煎蛋",209,14.0,15.0,2.0,"一个",50,"肉蛋"],["蛋清",60,11.6,0.1,3.1,"一个",33,"肉蛋"],
+["蛋黄",328,15.2,28.2,3.4,"一个",17,"肉蛋"],["咸鸭蛋",190,12.7,12.7,6.0,"一个",70,"肉蛋"],
+// 水产
+["草鱼",113,16.6,5.2,0.0,"一份",150,"水产"],["鲈鱼",105,18.6,3.4,0.0,"一条",300,"水产"],
+["三文鱼",139,17.2,7.8,0.0,"一份",100,"水产"],["鳕鱼",88,20.4,0.5,0.0,"一份",120,"水产"],
+["带鱼",127,17.7,4.9,3.1,"一份",100,"水产"],["金枪鱼罐头（水浸）",116,25.5,0.8,0.0,"一罐",120,"水产"],
+["基围虾",101,18.2,1.4,3.9,"10只",100,"水产"],["虾仁",93,18.6,0.8,2.8,"一份",100,"水产"],
+["蟹（河蟹）",103,17.5,2.6,2.3,"一只",150,"水产"],["鱿鱼",84,17.0,1.4,0.0,"一份",100,"水产"],
+["蛤蜊",62,10.1,1.1,2.8,"一份",150,"水产"],["扇贝",60,11.1,0.6,2.6,"一个",30,"水产"],
+// 豆奶
+["北豆腐",116,12.2,4.8,4.2,"一块",200,"豆奶"],["南豆腐",87,6.2,3.6,4.8,"一块",200,"豆奶"],
+["豆腐干",197,16.2,3.6,11.5,"一块",40,"豆奶"],["腐竹",459,44.6,21.7,22.3,"一份",50,"豆奶"],
+["豆浆（无糖）",31,3.0,1.6,1.2,"一杯",250,"豆奶"],["黄豆（干）",390,35.0,16.0,34.2,"一份",50,"豆奶"],
+["毛豆（煮）",131,13.1,5.0,10.5,"一份",100,"豆奶"],["牛奶（全脂）",54,3.0,3.2,3.4,"一杯",250,"豆奶"],
+["脱脂牛奶",33,3.4,0.1,4.8,"一杯",250,"豆奶"],["酸奶（全脂加糖）",72,3.2,2.7,9.3,"一杯",150,"豆奶"],
+["希腊酸奶（无糖）",59,10.0,0.4,3.6,"一杯",150,"豆奶"],["奶酪（切达）",402,25.0,33.0,1.3,"一片",20,"豆奶"],
+// 蔬菜
+["大白菜",20,1.5,0.1,3.2,"一份",200,"蔬菜"],["生菜",16,1.4,0.2,2.0,"一份",150,"蔬菜"],
+["菠菜",28,2.6,0.3,4.5,"一份",200,"蔬菜"],["西兰花",36,4.1,0.6,4.3,"一份",150,"蔬菜"],
+["黄瓜",16,0.8,0.2,2.9,"一根",200,"蔬菜"],["番茄",20,0.9,0.2,4.0,"一个",150,"蔬菜"],
+["茄子",21,1.1,0.2,4.9,"一个",200,"蔬菜"],["青椒",22,1.4,0.3,5.4,"一个",80,"蔬菜"],
+["胡萝卜",39,1.0,0.2,8.8,"一根",120,"蔬菜"],["洋葱",40,1.1,0.2,9.0,"一个",150,"蔬菜"],
+["口蘑",20,2.7,0.1,2.4,"一份",100,"蔬菜"],["香菇（鲜）",26,2.2,0.3,5.2,"一份",100,"蔬菜"],
+["金针菇",32,2.4,0.4,6.0,"一份",100,"蔬菜"],["木耳（水发）",27,1.5,0.2,6.0,"一份",100,"蔬菜"],
+["海带（鲜）",17,1.2,0.1,2.1,"一份",100,"蔬菜"],["豆芽",18,2.1,0.1,2.9,"一份",150,"蔬菜"],
+["冬瓜",12,0.4,0.2,2.6,"一份",200,"蔬菜"],["苦瓜",22,1.0,0.1,4.9,"一根",150,"蔬菜"],
+["芹菜",22,1.2,0.2,4.5,"一份",150,"蔬菜"],["韭菜",26,2.4,0.4,4.6,"一份",100,"蔬菜"],
+["芦笋",22,1.4,0.1,4.9,"一份",100,"蔬菜"],["秋葵",37,2.0,0.1,7.1,"一份",100,"蔬菜"],
+["莲藕",73,1.9,0.2,16.4,"一份",150,"蔬菜"],["炒青菜（油炒）",80,1.8,6.5,3.5,"一盘",200,"蔬菜"],
+// 水果
+["苹果",54,0.2,0.2,13.5,"一个",200,"水果"],["香蕉",93,1.4,0.2,22.0,"一根",120,"水果"],
+["橙子",48,0.8,0.2,11.1,"一个",200,"水果"],["葡萄",45,0.5,0.2,10.3,"一串",200,"水果"],
+["西瓜",31,0.5,0.1,7.9,"一块",300,"水果"],["梨",51,0.3,0.1,13.1,"一个",200,"水果"],
+["桃",42,0.9,0.1,10.9,"一个",200,"水果"],["草莓",32,1.0,0.2,7.1,"一份",150,"水果"],
+["蓝莓",57,0.7,0.3,14.5,"一份",100,"水果"],["猕猴桃",61,0.8,0.6,14.5,"一个",90,"水果"],
+["芒果",60,0.6,0.2,15.0,"一个",200,"水果"],["葡萄柚",33,0.7,0.1,8.4,"一个",250,"水果"],
+["菠萝",44,0.5,0.1,10.8,"一块",150,"水果"],["车厘子",63,1.1,0.2,16.0,"一份",150,"水果"],
+["荔枝",71,0.9,0.2,16.6,"一份",150,"水果"],["火龙果",55,1.1,0.4,13.0,"一个",300,"水果"],
+["牛油果",171,2.0,15.3,7.4,"一个",150,"水果"],
+// 坚果油脂
+["核桃仁",646,14.9,58.8,19.1,"一份",20,"坚果"],["杏仁",578,21.2,49.4,21.6,"一份",20,"坚果"],
+["腰果",559,17.3,36.7,41.6,"一份",20,"坚果"],["花生（炒）",589,21.7,48.0,23.8,"一份",30,"坚果"],
+["葵花籽",606,22.6,52.8,17.3,"一份",30,"坚果"],["芝麻",517,19.1,46.1,24.0,"一勺",10,"坚果"],
+["植物油",899,0.0,99.9,0.0,"一勺",10,"油脂"],["橄榄油",899,0.0,99.9,0.0,"一勺",10,"油脂"],
+["黄油",888,1.4,98.0,0.0,"一勺",10,"油脂"],["白砂糖",400,0.0,0.0,99.9,"一勺",8,"油脂"],
+["蜂蜜",321,0.4,1.9,75.6,"一勺",15,"油脂"],["沙拉酱",680,1.4,76.0,3.1,"一勺",15,"油脂"],
+["番茄酱",81,4.9,0.2,16.9,"一勺",15,"油脂"],["酱油",63,5.6,0.1,10.1,"一勺",15,"油脂"],
+// 饮品零食
+["可乐",43,0.0,0.0,10.8,"一罐",330,"饮品"],["无糖可乐",0.3,0.0,0.0,0.1,"一罐",330,"饮品"],
+["橙汁",45,0.7,0.2,10.2,"一杯",250,"饮品"],["奶茶（全糖）",85,0.8,2.5,15.0,"一杯",500,"饮品"],
+["拿铁（全脂无糖）",47,3.2,2.4,3.6,"一杯",350,"饮品"],["美式咖啡",2,0.1,0.0,0.3,"一杯",350,"饮品"],
+["啤酒",32,0.4,0.0,3.1,"一瓶",500,"饮品"],["红酒",85,0.1,0.0,2.6,"一杯",150,"饮品"],
+["白酒（52度）",338,0.0,0.0,0.0,"一两",50,"饮品"],
+["薯片",548,6.0,35.0,52.0,"一包",70,"零食"],["奥利奥饼干",480,5.0,20.0,70.0,"一片",11,"零食"],
+["苏打饼干",435,8.0,12.0,72.0,"一片",8,"零食"],["黑巧克力",546,7.8,42.6,45.9,"一块",10,"零食"],
+["奶油蛋糕",347,4.5,15.0,48.0,"一块",100,"零食"],["冰淇淋",127,2.4,5.3,17.3,"一个球",60,"零食"],
+["方便面（含调料）",470,9.5,21.0,60.0,"一包",100,"零食"],["披萨",266,11.0,10.0,32.0,"一片",100,"快餐"],
+["巨无霸汉堡",256,12.0,13.0,23.0,"一个",215,"快餐"],["薯条",312,3.5,15.0,41.0,"中份",110,"快餐"],
+// 中式菜肴
+["番茄炒蛋",100,5.5,7.0,4.5,"一盘",300,"菜肴"],["宫保鸡丁",150,11.0,8.0,8.0,"一盘",300,"菜肴"],
+["麻婆豆腐",110,7.0,8.0,4.0,"一盘",300,"菜肴"],["红烧鱼",145,15.0,7.0,5.0,"一盘",250,"菜肴"],
+["可乐鸡翅",190,15.0,9.0,12.0,"一盘",250,"菜肴"],["水煮牛肉",160,13.0,10.0,5.0,"一盘",300,"菜肴"],
+["黄焖鸡米饭",130,7.0,5.5,14.0,"一份",450,"菜肴"],["沙县拌面",200,6.5,7.0,28.0,"一份",300,"菜肴"],
+["麻辣香锅",180,8.0,12.0,10.0,"一份",400,"菜肴"],["火锅（清汤，食材均计）",150,10.0,9.0,8.0,"一顿",600,"菜肴"]
+];
+/* ================= 云服务：配置 / 客户端 / 状态 ================= */
+/* endpoint 与 publishableKey 来自云服务激活返回的 publicConfig，二者缺一不可 */
+/* ---------- 云服务接入 ----------
+   实测结论（用正确凭据复测，避免落到"密码错"分支造成误判）：
+     Origin = 官方域名            -> 200 放行
+     Origin = 自有域名            -> 403 access_denied
+     完全不带 Origin             -> 401 invalid_grant
+   也就是说云服务**必须**看到官方 Origin 才放行，靠的是 Origin 精确匹配。
+   同源代理无法解决：服务端发起的请求没有 Origin，会被 401 拦下。
+
+   因此 endpoint 固定为官方域名。页面部署在其它域名时登录必然失败，
+   这是服务端安全策略，前端与代理都无法绕过——只能使用官方地址。
+   publicConfig 的 endpoint 不可写死为字面量以外的猜测值，必须来自激活返回值。 */
+var CLOUD_DIRECT_ENDPOINT = "https://calorie-tracker-19816.app.workbuddy.host";
+var PUBLISHABLE_KEY = "wbpk_fJsv5KIu1khS6dpas3P1m3_OIf7jlvDOtU28SIx0vUv95TNTAiw10Pr";
+var PUBLIC_CONFIG = {
+  endpoint: CLOUD_DIRECT_ENDPOINT,
+  publishableKey: PUBLISHABLE_KEY
+};
+var cloud = null;
+
+/* ---------- 存储适配层 ----------
+   部分浏览器（Edge 跟踪防护、360/猎豹等国产浏览器）会拦截第三方脚本或内联页面对
+   localStorage / sessionStorage 的访问，导致 SDK 存取 token 失败、登录静默失败且界面无任何提示。
+   这里做三层递进：localStorage → sessionStorage → Cookie → 内存，任一可用即可。
+   内存兜底只在会话内有效（刷新后需重新登录），但保证登录流程本身能走通。 */
+function makeSafeStorage() {
+  function probe(area, name) {
+    try {
+      var k = "__wb_probe__";
+      area.setItem(k, "1"); area.removeItem(k);
+      return area;
+    } catch (e) { return null; }
+  }
+  var ls = probe(window.localStorage, "localStorage");
+  var ss = probe(window.sessionStorage, "sessionStorage");
+  var cookieOk = false;
+  try {
+    document.cookie = "__wb_probe__=1;path=/;SameSite=Lax";
+    cookieOk = document.cookie.indexOf("__wb_probe__") >= 0;
+    document.cookie = "__wb_probe__=;path=/;max-age=0";
+  } catch (e) { cookieOk = false; }
+
+  if (ls || ss) {
+    var backing = ls || ss;
+    var cache = {};
+    return {
+      getItem: function (k) { try { var v = backing.getItem(k); return v === null && k in cache ? cache[k] : v; } catch (e) { return k in cache ? cache[k] : null; } },
+      setItem: function (k, v) { try { backing.setItem(k, v); } catch (e) { } cache[k] = v; },
+      removeItem: function (k) { try { backing.removeItem(k); } catch (e) { } delete cache[k]; },
+      key: function (i) { try { return backing.key(i); } catch (e) { return null; } },
+      get length() { try { return backing.length; } catch (e) { return Object.keys(cache).length; } }
+    };
+  }
+  if (cookieOk) {
+    var mem = {};
+    function readAll() {
+      var out = {};
+      document.cookie.split(";").forEach(function (part) {
+        var i = part.indexOf("=");
+        if (i < 0) return;
+        var k = part.slice(0, i).trim();
+        if (k.indexOf("wb_") === 0) out[k] = decodeURIComponent(part.slice(i + 1).trim());
+      });
+      return out;
+    }
+    return {
+      getItem: function (k) { var v = readAll()[k]; return v === undefined ? null : v; },
+      setItem: function (k, v) {
+        mem[k] = v;
+        try { document.cookie = "wb_" + k + "=" + encodeURIComponent(v) + ";path=/;max-age=604800;SameSite=Lax"; } catch (e) { }
+      },
+      removeItem: function (k) {
+        delete mem[k];
+        try { document.cookie = "wb_" + k + "=;path=/;max-age=0;SameSite=Lax"; } catch (e) { }
+      },
+      key: function (i) { var ks = Object.keys(readAll()); return ks.length ? ks[i] : null; },
+      get length() { return Object.keys(readAll()).length; }
+    };
+  }
+  var only = {};
+  return {
+    getItem: function (k) { return k in only ? only[k] : null; },
+    setItem: function (k, v) { only[k] = v; },
+    removeItem: function (k) { delete only[k]; },
+    key: function (i) { var ks = Object.keys(only); return ks.length ? ks[i] : null; },
+    get length() { return Object.keys(only).length; }
+  };
+}
+
+var storageKind = (function () {
+  try {
+    localStorage.setItem("__k", "1"); localStorage.removeItem("__k"); return "localStorage";
+  } catch (e) { }
+  try {
+    sessionStorage.setItem("__k", "1"); sessionStorage.removeItem("__k"); return "sessionStorage";
+  } catch (e) { }
+  try {
+    document.cookie = "__k=1;path=/"; var ok = document.cookie.indexOf("__k") >= 0;
+    document.cookie = "__k=;path=/;max-age=0"; return ok ? "cookie" : "memory";
+  } catch (e) { return "memory"; }
+})();
+
+(function () {
+  if (!window.WorkBuddyCloud) return;
+  var config = {
+    endpoint: CLOUD_DIRECT_ENDPOINT,
+    publishableKey: PUBLISHABLE_KEY,
+    storage: makeSafeStorage()
+  };
+  try {
+    cloud = WorkBuddyCloud.createWorkBuddyCloud(config);
+    PUBLIC_CONFIG = config;
+  } catch (e) {
+    cloud = null;
+    window.__cloudInitError = errText(e, "云端客户端初始化失败");
+  }
+})();
+
+/* ================= 通用工具 ================= */
+function $(id) { return document.getElementById(id); }
+function pad2(n) { return n < 10 ? "0" + n : "" + n; }
+function todayStr() { var d = new Date(); return d.getFullYear() + "-" + pad2(d.getMonth() + 1) + "-" + pad2(d.getDate()); }
+function uid() {
+  if (window.crypto && crypto.randomUUID) return crypto.randomUUID();
+  return Math.random().toString(36).slice(2) + Date.now().toString(36);
+}
+function errText(error, fallback) {
+  if (!error) return fallback || "操作失败";
+  var m = error.message || error.error_description || "";
+  if (error.kind) m += "（" + error.kind + "）";
+  return m || (fallback || "操作失败");
+}
+/*sel 允许传 "liErr" 或 "#liErr"，两种写法都能取到元素（早期版本只认 id，
+   而调用处普遍带 #，导致所有错误提示被静默丢弃，登录失败时界面毫无反馈） */
+function showErr(sel, msg) {
+  var el = $(String(sel).replace(/^#/, ""));
+  if (el) el.textContent = msg || "";
+}
+function toast(msg, kind) {
+  var t = $("toast"); if (!t) return;
+  t.textContent = msg;
+  t.className = "toast show" + (kind ? " " + kind : "");
+  clearTimeout(t._t);
+  t._t = setTimeout(function () { t.className = "toast"; }, 2800);
+}
+function esc(s) {
+  return String(s == null ? "" : s).replace(/[&<>"']/g, function (c) {
+    return { "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c];
+  });
+}
+function setSync(t) { var el = $("syncState"); if (el) el.textContent = t ? "· " + t : ""; }
+
+/* ================= 状态 ================= */
+var gender = "male", goal = "maintain", target = 0, bmrV = 0, tdeeV = 0;
+var src = "local", selected = null;
+var today = todayStr();
+var state = { user: null, profile: null, logs: [], custom: [], urlCache: {}, ready: false, photoBlob: null };
+var pendingLoginOtp = null, pendingSignupOtp = null;
+
+/* ================= 登录 / 注册 ================= */
+function validEmail(v) { return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(v); }
+function showAuth() {
+  $("authView").classList.remove("hidden");
+  $("topbar").classList.add("hidden");
+  renderRuntimeStatus();
+}
+function showApp() {
+  $("authView").classList.add("hidden");
+  $("topbar").classList.remove("hidden");
+}
+function authTab(k) {
+  ["L", "O", "S"].forEach(function (x) {
+    $("pane" + x).classList.toggle("hidden", x.toLowerCase() !== k);
+    $("tab" + x).classList.toggle("active", x.toLowerCase() === k);
+  });
+  showErr("#liErr", ""); showErr("#otErr", ""); showErr("#suErr", "");
+}
+async function doSignInPassword(ev) {
+  ev.preventDefault(); showErr("#liErr", "");
+  if (!cloud) {
+    showErr("#liErr", "云端服务未能初始化" + (window.__cloudInitError ? "：" + window.__cloudInitError : "，请刷新页面重试"));
+    return false;
+  }
+  var email = $("liEmail").value.trim(), pass = $("liPass").value;
+  if (!validEmail(email)) { showErr("#liErr", "请输入正确的邮箱地址"); return false; }
+  if (pass.length < 6) { showErr("#liErr", "请输入密码（至少 6 位）"); return false; }
+  var btn = $("liBtn"); btn.disabled = true; btn.textContent = "登录中…";
+  try {
+    var r = await cloud.auth.signInWithPassword({ email: email, password: pass });
+    if (r.error) {
+      var why = errText(r.error, "");
+      var low = String(why).toLowerCase();
+      if (low.indexOf("origin is not allowed") >= 0 || low.indexOf("access_denied") >= 0) {
+        why = "当前域名未被云服务授权。请在自有服务器上部署 cloud-proxy.mjs 同源代理后重试。";
+      } else if (low.indexOf("username or password incorrect") >= 0 ||
+                 low.indexOf("invalid_username_or_password") >= 0) {
+        why = "邮箱或密码不正确。若你从未设置过密码，请改用「验证码登录」或「注册」。";
+      }
+      showErr("#liErr", "登录失败：" + (why || "请稍后重试"));
+      return false;
+    }
+    await afterLogin(r.data && r.data.user);
+  } catch (e) {
+    showErr("#liErr", "网络异常：" + errText(e, "请稍后重试"));
+  } finally {
+    btn.disabled = false; btn.textContent = "登 录";
+  }
+  return false;
+}
+async function doSendOtpLogin() {
+  showErr("#otErr", "");
+  if (!cloud) { showErr("#otErr", "云端服务未能初始化，请刷新页面重试"); return; }
+  var email = $("otEmail").value.trim();
+  if (!validEmail(email)) { showErr("#otErr", "请输入正确的邮箱地址"); return; }
+  var btn = $("otSend"); btn.disabled = true; var old = btn.textContent; btn.textContent = "发送中…";
+  try {
+    var r = await cloud.auth.signInWithOtp({ email: email });
+    if (r.error) { showErr("#otErr", "验证码发送失败：" + errText(r.error, "请稍后重试")); btn.textContent = old; return; }
+    pendingLoginOtp = r.data;
+    btn.textContent = "重新发送";
+    toast("验证码已发送，请查收邮件", "ok");
+  } catch (e) {
+    showErr("#otErr", "发送失败：" + errText(e, "请检查网络"));
+    btn.textContent = old;
+  } finally {
+    btn.disabled = false;
+  }
+}
+async function doVerifyOtpLogin(ev) {
+  ev.preventDefault(); showErr("#otErr", "");
+  if (!pendingLoginOtp) { showErr("#otErr", "请先点击「发送验证码」"); return false; }
+  var token = $("otCode").value.trim();
+  if (!token) { showErr("#otErr", "请输入邮箱验证码"); return false; }
+  var btn = $("otBtn"); btn.disabled = true; btn.textContent = "验证中…";
+  try {
+    var r = await pendingLoginOtp.verify({ token: token });
+    if (r.error) {
+      showErr("#otErr", "验证失败：" + errText(r.error, "验证码不正确或已过期"));
+      return false;
+    }
+    await afterLogin(r.data && r.data.user);
+  } catch (e) {
+    showErr("#otErr", "验证失败：" + errText(e, "请稍后重试"));
+  } finally {
+    btn.disabled = false; btn.textContent = "登 录";
+  }
+  return false;
+}
+async function doSendSignupOtp() {
+  showErr("#suErr", "");
+  if (!cloud) { showErr("#suErr", "云端服务未能初始化，请刷新页面重试"); return; }
+  var email = $("suEmail").value.trim(), pass = $("suPass").value;
+  if (!validEmail(email)) { showErr("#suErr", "请输入正确的邮箱地址"); return; }
+  if (pass.length < 6) { showErr("#suErr", "请先设置密码（至少 6 位）"); return; }
+  var btn = $("suSend"); btn.disabled = true; var old = btn.textContent; btn.textContent = "发送中…";
+  try {
+    var r = await cloud.auth.sendOtp({ email: email });
+    if (r.error) { showErr("#suErr", "验证码发送失败：" + errText(r.error, "请稍后重试")); btn.textContent = old; return; }
+    pendingSignupOtp = r.data;
+    if (r.data && r.data.isExistingUser) { showErr("#suErr", "该邮箱已注册，请改用「密码登录」或「验证码登录」"); }
+    else { toast("验证码已发送，请查收邮件", "ok"); btn.textContent = "重新发送"; }
+  } catch (e) {
+    showErr("#suErr", "发送失败：" + errText(e, "请检查网络"));
+    btn.textContent = old;
+  } finally {
+    btn.disabled = false;
+  }
+}
+async function doSignup(ev) {
+  ev.preventDefault(); showErr("#suErr", "");
+  if (!pendingSignupOtp) { showErr("#suErr", "请先点击「发送邮箱验证码」"); return false; }
+  var email = $("suEmail").value.trim(), pass = $("suPass").value, token = $("suCode").value.trim();
+  if (!token) { showErr("#suErr", "请输入邮箱验证码"); return false; }
+  var btn = $("suBtn"); btn.disabled = true; btn.textContent = "注册中…";
+  try {
+    var r = await cloud.auth.verifyOtp({
+      verificationId: pendingSignupOtp.verificationId,
+      token: token,
+      email: email,
+      isExistingUser: pendingSignupOtp.isExistingUser,
+      password: pendingSignupOtp.isExistingUser ? undefined : pass
+    });
+    if (r.error) {
+      showErr("#suErr", "注册失败：" + errText(r.error, "验证码不正确或已过期"));
+      return false;
+    }
+    var wasExisting = !!pendingSignupOtp.isExistingUser;
+    await afterLogin(r.data && r.data.user);
+    if (wasExisting) toast("该邮箱已注册，本次直接登录，未修改密码", "ok");
+  } catch (e) {
+    showErr("#suErr", "注册失败：" + errText(e, "请稍后重试"));
+  } finally {
+    btn.disabled = false; btn.textContent = "注册并登录";
+  }
+  return false;
+}
+function renderRuntimeStatus() {
+  var sk = $("storageKind"), ss = $("sdkState"), tip = $("sdkTip");
+  var kindText = { localStorage: "正常", sessionStorage: "降级·会话", cookie: "降级·Cookie", memory: "降级·内存" };
+  if (sk) sk.textContent = (storageKind || "?") + "（" + (kindText[storageKind] || storageKind) + "）";
+  var okCloud = !!(window.WorkBuddyCloud && cloud);
+  var viaProxy = okCloud && String(cloud.endpoint || PUBLIC_CONFIG.endpoint || "") !== CLOUD_DIRECT_ENDPOINT;
+  var modeText = !okCloud ? "云端组件不可用"
+    : (viaProxy ? "经自有服务器代理（登录可用）" : "直连云服务");
+  if (ss) ss.textContent = modeText + (window.__cloudInitError ? "：" + window.__cloudInitError : "");
+  if (!okCloud && tip) {
+    tip.style.display = "";
+    tip.innerHTML = "<b>云端组件不可用</b>：请用普通模式窗口打开（不要用无痕/受限模式），并关闭广告拦截插件后刷新重试。";
+  } else if (tip) {
+    tip.style.display = "none";
+  }
+}
+
+/* ---------- 自有域名守卫 ----------
+   云服务要求请求携带官方 Origin 才放行（实测：不带=401，自有域名=403，
+   仅官方域名=200）。因此自有域名下部署页面无法完成登录，同源代理也解决不了
+   （服务端转发没有 Origin，会被 401 拦下）。这里直接把结论告诉用户，
+   并给出可用的官方地址，不再让用户对着登录框反复尝试。 */
+var OFFICIAL_HOST_MARK = "workbuddy.host";
+var IS_OFFICIAL_SITE = location.hostname.indexOf(OFFICIAL_HOST_MARK) >= 0;
+
+function toggleReset() {
+  var b = $("resetBox"); if (!b) return;
+  b.classList.toggle("hidden");
+  if (!b.classList.contains("hidden")) {
+    var em = $("liEmail").value.trim();
+    if (em) $("rsEmail").value = em;
+  }
+}
+var pendingReset = null;
+async function doSendReset() {
+  showErr("#rsErr", "");
+  if (!cloud) { showErr("#rsErr", "云端服务未能初始化，请刷新页面重试"); return; }
+  var email = ($("rsEmail") && $("rsEmail").value.trim()) || $("liEmail").value.trim();
+  if (!validEmail(email)) { showErr("#rsErr", "请先在上方填写邮箱地址"); return; }
+  var btn = $("rsSend"); btn.disabled = true; btn.textContent = "发送中…";
+  try {
+    var r = await cloud.auth.resetPasswordForEmail(email);
+    if (r.error) { showErr("#rsErr", "发送失败：" + errText(r.error, "请稍后重试")); return; }
+    pendingReset = { email: email, data: r.data };
+    btn.textContent = "重新发送";
+    toast("重置验证码已发送到邮箱，请查收", "ok");
+  } catch (e) {
+    showErr("#rsErr", "发送失败：" + errText(e, "请稍后重试"));
+  } finally {
+    btn.disabled = false;
+  }
+}
+async function doResetPassword() {
+  showErr("#rsErr", "");
+  if (!pendingReset) { showErr("#rsErr", "请先点「发送重置验证码」"); return; }
+  var code = $("rsCode").value.trim(), np = $("rsPass").value;
+  if (!code) { showErr("#rsErr", "请输入邮箱验证码"); return; }
+  if (!np || np.length < 6) { showErr("#rsErr", "新密码至少 6 位"); return; }
+  var btn = $("rsDo"); btn.disabled = true; btn.textContent = "重置中…";
+  try {
+    var u = await pendingReset.data.updateUser({ nonce: code, password: np });
+    if (u.error) { showErr("#rsErr", "重置失败：" + errText(u.error, "验证码不正确或已过期")); return; }
+    toast("密码已重置，正在进入…", "ok");
+    await afterLogin(u.data && u.data.user);
+  } catch (e) {
+    showErr("#rsErr", "重置失败：" + errText(e, "请稍后重试"));
+  } finally {
+    btn.disabled = false; btn.textContent = "重置并登录";
+  }
+}
+async function doSignOut() {
+  try { await cloud.auth.signOut(); } catch (e) { /* 忽略 */ }
+  state.user = null; state.profile = null; state.logs = []; state.custom = [];
+  state.urlCache = {}; state.ready = false;
+  showAuth();
+  toast("已退出登录");
+}
+async function afterLogin(user) {
+  if (!user) {
+    try {
+      var s = await cloud.auth.getSession();
+      var d = s && s.data;
+      user = d && (d.user || (d.session && d.session.user));
+    } catch (e) { /* 忽略 */ }
+  }
+  if (!user) { showAuth(); showErr("#liErr", "登录状态未建立，请重试（需在发布域名下访问）"); return; }
+  state.user = user;
+  $("userEmail").textContent = user.email || "已登录";
+  showApp();
+  await loadAll();
+}
+
+/* ================= 云端数据层（数据库 + 对象存储） ================= */
+async function loadAll() {
+  setSync("正在同步…");
+  try {
+    await loadProfile();
+    syncProfileToForm();
+    await Promise.all([loadLogs(), loadCustom()]);
+    renderLog(); renderCustom();
+    state.ready = true;
+    setSync("云端数据已同步");
+  } catch (e) {
+    setSync("同步失败");
+    toast("数据加载失败：" + errText(e, "请检查网络后刷新"), "err");
+  }
+}
+async function loadProfile() {
+  var r = await cloud.database.from("profiles").select("*").maybeSingle();
+  if (r.error) throw r.error;
+  if (r.data) { state.profile = r.data; return; }
+  var nick = String((state.user && state.user.email) || "").split("@")[0] || "我";
+  var ins = await cloud.database.from("profiles").insert({ nickname: nick }).select();
+  if (ins.error) throw ins.error;
+  state.profile = (ins.data && ins.data[0]) || null;
+}
+async function loadLogs() {
+  var r = await cloud.database.from("food_logs").select("*")
+    .eq("log_date", today).order("created_at", { ascending: true });
+  if (r.error) throw r.error;
+  state.logs = r.data || [];
+}
+async function loadCustom() {
+  var r = await cloud.database.from("custom_foods").select("*")
+    .order("created_at", { ascending: false });
+  if (r.error) throw r.error;
+  state.custom = r.data || [];
+  await ensureUrls(state.custom.map(function (o) { return o.image_path; }).filter(Boolean));
+}
+async function uploadPhoto(blob) {
+  var path = cloud.storage.userPath(state.user.id, "labels/" + uid() + ".jpg");
+  var r = await cloud.storage.upload(path, blob, { contentType: "image/jpeg", cacheControl: "3600", upsert: false });
+  if (r && r.error) throw r.error;
+  return path;
+}
+function pickUrl(d) {
+  if (!d) return null;
+  if (typeof d === "string") return d;
+  return d.signedUrl || d.signed_url || d.signedURL || d.url || null;
+}
+async function ensureUrls(paths) {
+  var now = Date.now(), need = [];
+  (paths || []).forEach(function (p) {
+    if (p && (!state.urlCache[p] || state.urlCache[p].exp < now)) need.push(p);
+  });
+  if (!need.length) return;
+  try {
+    var r = await cloud.storage.createSignedUrls(need, 3600);
+    var d = r && r.data;
+    if (Array.isArray(d)) {
+      d.forEach(function (item, i) {
+        var u = pickUrl(item);
+        var p = (item && (item.path || item.key || item.objectPath)) || need[i];
+        if (u && p) state.urlCache[p] = { url: u, exp: now + 3000 * 1000 };
+      });
+    }
+  } catch (e) { /* 退化逐个签名 */ }
+  for (var i = 0; i < need.length; i++) {
+    if (state.urlCache[need[i]]) continue;
+    try {
+      var one = await cloud.storage.createSignedUrl(need[i], 3600);
+      var u2 = pickUrl(one && one.data) || pickUrl(one);
+      if (u2) state.urlCache[need[i]] = { url: u2, exp: now + 3000 * 1000 };
+    } catch (e2) { /* 忽略 */ }
+  }
+}
+
+/* ================= 我的数据（云端 profiles） ================= */
+var profileTimer = null;
+function syncProfileToForm() {
+  var p = state.profile;
+  if (!p) { calc(); return; }
+  if (p.gender) {
+    gender = p.gender;
+    document.querySelectorAll("#genderSeg button").forEach(function (b) {
+      b.classList.toggle("active", b.dataset.gender === p.gender);
+    });
+  }
+  if (p.goal) {
+    goal = p.goal;
+    document.querySelectorAll("#goalSeg button").forEach(function (b) {
+      b.classList.toggle("active", b.dataset.goal === p.goal);
+    });
+  }
+  var set = function (id, v) { if (v != null && v !== "") $(id).value = v; };
+  set("age", p.age); set("height", p.height_cm); set("weight", p.weight_kg); set("activity", p.activity);
+  calc();
+}
+function scheduleProfileSave() {
+  if (!state.ready || !state.user) return;
+  setSync("保存中…");
+  clearTimeout(profileTimer);
+  profileTimer = setTimeout(saveProfile, 900);
+}
+async function saveProfile() {
+  if (!state.user) return;
+  var payload = {
+    gender: gender,
+    age: +$("age").value || null,
+    height_cm: +$("height").value || null,
+    weight_kg: +$("weight").value || null,
+    activity: +$("activity").value || 1.55,
+    goal: goal,
+    target_kcal: target ? Math.round(target) : null,
+    bmr: bmrV ? Math.round(bmrV) : null,
+    tdee: tdeeV ? Math.round(tdeeV) : null,
+    updated_at: new Date().toISOString()
+  };
+  try {
+    var r;
+    if (state.profile && state.profile.id) {
+      r = await cloud.database.from("profiles").update(payload).eq("id", state.profile.id).select();
+    } else {
+      r = await cloud.database.from("profiles").insert(payload).select();
+    }
+    if (r.error) throw r.error;
+    if (r.data && r.data[0]) state.profile = r.data[0];
+    setSync("已保存到云端");
+  } catch (e) {
+    setSync("保存失败");
+    toast("资料保存失败：" + errText(e, "请稍后重试"), "err");
+  }
+}
+
+/* ================= 启动 ================= */
+function bindAuthEvents() {
+  if (!cloud) return;
+  try {
+    cloud.auth.onAuthStateChange(function (ev) {
+      if (ev === "SIGNED_OUT") showAuth();
+    });
+  } catch (e) { /* 忽略 */ }
+}
+async function boot() {
+  showAuth();
+  if (!cloud) {
+    var tip = $("sdkTip"); if (tip) tip.classList.remove("hidden");
+    return;
+  }
+  try {
+    var r = await cloud.auth.getSession();
+    var d = r && r.data;
+    var u = d && (d.user || (d.session && d.session.user));
+    if (!r.error && u) await afterLogin(u);
+  } catch (e) { console.warn("session check failed", e); }
+}
+function switchTab(t){
+  ["log","me","scan"].forEach(k=>
+    document.getElementById("page"+k.charAt(0).toUpperCase()+k.slice(1)).classList.toggle("hidden", t!==k));
+  ["Log","Me","Scan"].forEach(k=>
+    document.getElementById("tab"+k).classList.toggle("active", t===k.charAt(0).toLowerCase()+k.slice(1)));
+  if(t==="scan") renderCustom();
+}
+function setSrc(s){
+  src=s;
+  document.getElementById("srcLocal").classList.toggle("on", s==="local");
+  document.getElementById("srcOff").classList.toggle("on", s==="off");
+  document.getElementById("barcodeLine").style.display = s==="off"?"flex":"none";
+  document.getElementById("results").innerHTML = '<div class="empty">输入关键词开始搜索</div>';
+}
+/* ================= 搜索 ================= */
+let timer=null;
+function onSearch(){
+  clearTimeout(timer);
+  const q=document.getElementById("q").value.trim();
+  if(!q){ document.getElementById("results").innerHTML='<div class="empty">输入关键词开始搜索</div>'; return; }
+  if(src==="local"){ renderLocal(q); return; }
+  timer=setTimeout(()=>searchOFF(q),400);
+}
+function renderLocal(q){
+  const hits=[];
+  FOODS.forEach((f,i)=>{ if(f[0].includes(q)) hits.push({k:"b"+i,name:f[0],kcal:f[1],p:f[2],f:f[3],c:f[4],g:f[6],u:f[5],tag:f[7]}); });
+  state.custom.forEach((o)=>{ if(String(o.name).includes(q)) hits.push({k:"c"+o.id,name:o.name,kcal:+o.kcal||0,p:+o.protein||0,f:+o.fat||0,c:+o.carb||0,g:+o.unit_grams||100,u:o.unit_name||"一份",tag:"自建"}); });
+  const box=document.getElementById("results");
+  if(!hits.length){ box.innerHTML='<div class="empty">本地库没找到「'+q+'」，可切换到「在线查包装食品」，或到「拍照录入库」自己添加</div>'; return; }
+  box.innerHTML=hits.slice(0,60).map(f=>
+    `<div class="item" onclick="pickKey('${f.k}')">
+      <div><div class="n">${f.name}<span class="tag${f.k[0]==="c"?" off":""}">${f.tag}</span></div>
+      <div class="m">蛋白 ${f.p}g · 脂肪 ${f.f}g · 碳水 ${f.c}g ／100g　默认 ${f.g}g（${f.u}）</div></div>
+      <div class="e">${f.kcal}<span style="font-size:11px;font-weight:400"> 千卡</span></div>
+    </div>`).join("");
+}
+function pickKey(k){
+  let o;
+  if(k[0]==="b"){ const f=FOODS[+k.slice(1)]; o={name:f[0],kcal:f[1],p:f[2],f:f[3],c:f[4],g:f[6],u:f[5]}; }
+  else { const x=state.custom.find(y=>String(y.id)===k.slice(1)); o={name:x.name,kcal:+x.kcal||0,p:+x.protein||0,f:+x.fat||0,c:+x.carb||0,g:+x.unit_grams||100,u:x.unit_name||"一份"}; }
+  selected={name:o.name,kcal:+o.kcal,p:+o.p,f:+o.f,c:+o.c};
+  document.getElementById("grams").value=o.g;
+  showSel(o.u+" ≈ "+o.g+"g");
+  switchTab("log");
+}
+async function searchOFF(q){
+  const box=document.getElementById("results");
+  box.innerHTML='<div class="spinner">正在查询 Open Food Facts…</div>';
+  try{
+    const url="https://world.openfoodfacts.org/cgi/search.pl?search_terms="+encodeURIComponent(q)+
+      "&search_simple=1&action=process&json=1&page_size=15";
+    const r=await fetch(url); const d=await r.json();
+    const list=(d.products||[]).filter(p=>p.nutriments && p.nutriments["energy-kcal_100g"]!=null);
+    if(!list.length){ box.innerHTML='<div class="empty">没查到相关商品，换一个关键词或试试本地库</div>'; return; }
+    box.innerHTML=list.map(p=>{
+      const n=p.nutriments, name=p.product_name_zh||p.product_name||"未命名商品";
+      const k=Math.round(n["energy-kcal_100g"]||0);
+      const pr=(n.proteins_100g||0).toFixed(1), fa=(n.fat_100g||0).toFixed(1), ch=(n.carbohydrates_100g||0).toFixed(1);
+      return `<div class="item" onclick='pickOffEsc("${encodeURIComponent(name)}",${k},${+pr},${+fa},${+ch})'>
+        <div><div class="n">${name}<span class="tag off">在线</span></div>
+        <div class="m">蛋白 ${pr}g · 脂肪 ${fa}g · 碳水 ${ch}g ／100g${p.brands?"　· "+p.brands:""}</div></div>
+        <div class="e">${k}<span style="font-size:11px;font-weight:400"> 千卡</span></div></div>`;
+    }).join("");
+  }catch(e){ box.innerHTML='<div class="empty">在线查询失败：'+e.message+'（请检查网络）</div>'; }
+}
+async function searchBarcode(){
+  const code=document.getElementById("barcode").value.trim();
+  if(!code) return;
+  const box=document.getElementById("results");
+  box.innerHTML='<div class="spinner">正在查询条码…</div>';
+  try{
+    const r=await fetch("https://world.openfoodfacts.org/api/v0/product/"+code+".json");
+    const d=await r.json();
+    if(d.status!==1 || !d.product.nutriments || d.product.nutriments["energy-kcal_100g"]==null){
+      box.innerHTML='<div class="empty">该条码在 Open Food Facts 中没有营养数据</div>'; return;
+    }
+    const p=d.product, n=p.nutriments, name=p.product_name_zh||p.product_name||"条码 "+code;
+    box.innerHTML=`<div class="item" onclick='pickOffEsc("${encodeURIComponent(name)}",${Math.round(n["energy-kcal_100g"])},${+(n.proteins_100g||0)},${+(n.fat_100g||0)},${+(n.carbohydrates_100g||0)})'>
+      <div><div class="n">${name}<span class="tag off">在线</span></div>
+      <div class="m">蛋白 ${(n.proteins_100g||0).toFixed(1)}g · 脂肪 ${(n.fat_100g||0).toFixed(1)}g · 碳水 ${(n.carbohydrates_100g||0).toFixed(1)}g ／100g</div></div>
+      <div class="e">${Math.round(n["energy-kcal_100g"])}</div></div>`;
+  }catch(e){ box.innerHTML='<div class="empty">查询失败：'+e.message+'</div>'; }
+}
+function pick(kind,idx){
+  const f=FOODS[idx];
+  selected={name:f[0],kcal:f[1],p:f[2],f:f[3],c:f[4]};
+  document.getElementById("grams").value=f[6];
+  showSel(f[5]+" ≈ "+f[6]+"g");
+}
+function pickOff(name,k,p,f,c){
+  selected={name:name,kcal:k,p:p,f:f,c:c};
+  showSel("在线数据（每100g）");
+}
+function pickOffEsc(name,k,p,f,c){ pickOff(decodeURIComponent(name),k,p,f,c); }
+function showSel(tip){
+  const s=selected;
+  document.getElementById("selInfo").innerHTML=
+    "已选择：<b>"+s.name+"</b>（"+tip+"）　每100g："+s.kcal+" 千卡 · 蛋白 "+s.p+"g · 脂肪 "+s.f+"g · 碳水 "+s.c+"g";
+}
+/* ================= 记录 ================= */
+async function addFood(){
+  if(!selected){ alert("请先选择一种食物"); return; }
+  if(!state.user){ toast("登录后才能保存记录","err"); return; }
+  const g=+document.getElementById("grams").value||0;
+  if(g<=0){ alert("请输入份量"); return; }
+  const btn=document.getElementById("addBtn");
+  if(btn){ btn.disabled=true; btn.textContent="保存中…"; }
+  try{
+    const r=await cloud.database.from("food_logs").insert({
+      log_date: today,
+      name: selected.name,
+      grams: g,
+      kcal: selected.kcal,
+      protein: selected.p,
+      fat: selected.f,
+      carb: selected.c,
+      sodium: (selected.na==null?null:selected.na),
+      source: src
+    }).select();
+    if(r.error) throw r.error;
+    if(r.data && r.data[0]) state.logs.push(r.data[0]);
+    renderLog();
+    toast("已加入今日记录","ok");
+  }catch(err){
+    toast("保存失败："+errText(err,"请检查网络后重试"),"err");
+  }
+  if(btn){ btn.disabled=false; btn.textContent="加入记录"; }
+}
+async function delFood(id){
+  try{
+    const r=await cloud.database.from("food_logs").delete().eq("id", id).select();
+    if(r.error) throw r.error;
+    if(!r.data || !r.data.length){ toast("该记录不存在或不属于你","err"); return; }
+    state.logs=state.logs.filter(x=>String(x.id)!==String(id));
+    renderLog();
+  }catch(err){
+    toast("删除失败："+errText(err,"请稍后重试"),"err");
+  }
+}
+function renderLog(){
+  const box=document.getElementById("logList");
+  let K=0,P=0,F=0,C=0;
+  state.logs.forEach(l=>{
+    const r=(+l.grams||0)/100;
+    K+=(+l.kcal||0)*r; P+=(+l.protein||0)*r; F+=(+l.fat||0)*r; C+=(+l.carb||0)*r;
+  });
+  if(!state.logs.length) box.innerHTML='<div class="empty">今天还没有记录</div>';
+  else box.innerHTML=state.logs.map(l=>{
+    const r=(+l.grams||0)/100;
+    return `<div class="log"><div><div class="ln">${esc(l.name)}
+      ${l.source==="off"?'<span class="tag off">在线</span>':''}</div>
+      <div class="lm">${+l.grams||0}g　·　${Math.round((+l.kcal||0)*r)} 千卡　·　蛋白 ${((+l.protein||0)*r).toFixed(1)}g · 脂肪 ${((+l.fat||0)*r).toFixed(1)}g · 碳水 ${((+l.carb||0)*r).toFixed(1)}g</div></div>
+      <button class="del" onclick="delFood(${l.id})">×</button></div>`;
+  }).join("");
+  document.getElementById("logCount").textContent = state.logs.length? "（"+state.logs.length+" 项）":"";
+  document.getElementById("sumKcal").textContent=Math.round(K);
+  document.getElementById("sumP").textContent=Math.round(P)+" g";
+  document.getElementById("sumF").textContent=Math.round(F)+" g";
+  document.getElementById("sumC").textContent=Math.round(C)+" g";
+  const pct=target? Math.min(K/target*100,100):0;
+  const bar=document.getElementById("barKcal");
+  bar.style.width=pct+"%";
+  bar.style.background = target? (K>target*1.05?"var(--red)":(K<target*0.8?"var(--green)":"var(--primary)")):"var(--primary)";
+  const tot=P*4+C*4+F*9;
+  if(tot>0){
+    const a=Math.round(P*4/tot*100),b=Math.round(C*4/tot*100),cc=Math.max(0,100-a-b);
+    document.getElementById("mbarP").style.width=a+"%"; document.getElementById("mbarP").textContent="蛋白 "+a+"%";
+    document.getElementById("mbarC").style.width=b+"%"; document.getElementById("mbarC").textContent="碳水 "+b+"%";
+    document.getElementById("mbarF").style.width=cc+"%"; document.getElementById("mbarF").textContent="脂肪 "+cc+"%";
+  }
+  let tip="";
+  if(target){
+    const d=Math.round(target-K);
+    tip = d>=0 ? "距离目标还剩 <b>"+d+"</b> 千卡。" : "已超出目标 <b>"+(-d)+"</b> 千卡。";
+    if(P>0) tip += " 当前三大营养素供能比见上方色条，推荐参考 蛋白30% / 碳水45% / 脂肪25%。";
+  } else tip="请先在「我的数据」页填写身高体重，计算目标热量。";
+  document.getElementById("advice").innerHTML=tip;
+}
+/* ================= 拍照识别营养成分表 ================= */
+let ocrReady=false, ocrLoading=false, engine="local";
+/* ---- 视觉大模型配置（智谱免费模型） ---- */
+function curModel(){
+  const v=document.getElementById("modelSel").value;
+  return (v==="__custom" ? document.getElementById("modelName").value.trim() : v) || "glm-4.6v-flash";
+}
+function onModelChange(){
+  const sel=document.getElementById("modelSel");
+  document.getElementById("customModelRow").classList.toggle("hidden", sel.value!=="__custom");
+  const m=curModel();
+  document.getElementById("modelTip").innerHTML = /^glm-ocr/i.test(m)
+    ? "GLM-OCR 是文档/表格专用模型，会输出表格原文，再由本地规则解析成数值 —— 对印刷体营养标签最稳，成本极低。"
+    : (/thinking/i.test(m) ? "带推理模型会先思考再作答，复杂/倾斜/反光的标签更准，但耗时会长一些。" : "");
+  saveCfg();
+}
+function apiBase(){
+  return (document.getElementById("proxyUrl").value.trim()||"http://127.0.0.1:8787").replace(/\/+$/,"");
+}
+function apiPath(){
+  const p=(document.getElementById("apiPath").value.trim()||"/vision");
+  return p.startsWith("/") ? p : "/"+p;
+}
+/* Supabase 网关要求请求带 apikey 头，否则返回 401 "No API key found in request" */
+function isSupabase(){ return /supabase\.(co|in|net)/i.test(apiBase()); }
+function buildHeaders(cfg){
+  const h={"Content-Type":"application/json"};
+  const t=(cfg.authToken||"").trim();
+  if(t){
+    h["Authorization"]="Bearer "+t;
+    if(isSupabase()) h["apikey"]=t;
+  }
+  return h;
+}
+function fillPreset(kind){
+  if(kind==="supabase"){
+    document.getElementById("proxyUrl").value="https://xrrutssstigcfgzyadhm.supabase.co/functions/v1";
+    document.getElementById("apiPath").value="/vision";
+    document.getElementById("authToken").value="sb_publishable_KJ4KzTVy6KUyeIt0fRPVbQ_OYgoKO8Z";
+    document.getElementById("zhipuKey").value="";
+  }else{
+    document.getElementById("proxyUrl").value="http://127.0.0.1:8787";
+    document.getElementById("apiPath").value="/vision";
+    document.getElementById("authToken").value="";
+  }
+  saveCfg();
+  setStatus(kind==="supabase"
+    ? "已填入 Supabase 配置。请点「测试连接」验证：若返回 NO_KEY，说明还没在云端设置 ZHIPU_API_KEY（运行 deploy-supabase.bat）。"
+    : "已填入本地代理配置。请先双击 start-proxy.bat 再测试。");
+}
+function loadCfg(){
+  const c=JSON.parse(localStorage.getItem("calVisionCfg")||"{}");
+  if(c.proxyUrl) document.getElementById("proxyUrl").value=c.proxyUrl;
+  if(c.apiPath) document.getElementById("apiPath").value=c.apiPath;
+  if(c.authToken) document.getElementById("authToken").value=c.authToken;
+  if(c.key) document.getElementById("zhipuKey").value=c.key;
+  if(c.model){
+    const opts=[...document.getElementById("modelSel").options].map(o=>o.value);
+    if(opts.includes(c.model)) document.getElementById("modelSel").value=c.model;
+    else { document.getElementById("modelSel").value="__custom"; document.getElementById("modelName").value=c.model; }
+  }
+  if(c.custom) document.getElementById("modelName").value=c.custom;
+  onModelChange();
+}
+function saveCfg(){
+  localStorage.setItem("calVisionCfg", JSON.stringify({
+    proxyUrl:document.getElementById("proxyUrl").value.trim(),
+    apiPath:document.getElementById("apiPath").value.trim(),
+    authToken:document.getElementById("authToken").value.trim(),
+    key:document.getElementById("zhipuKey").value.trim(),
+    model:curModel(),
+    custom:document.getElementById("modelName").value.trim()
+  }));
+}
+function setEngine(e){
+  engine=e;
+  document.getElementById("engLocal").classList.toggle("on", e==="local");
+  document.getElementById("engAI").classList.toggle("on", e==="ai");
+  document.getElementById("aiCfg").classList.toggle("hidden", e!=="ai");
+  setStatus(e==="local"
+    ? "本地 OCR 首次使用需从 CDN 下载中文识别模型（约 20MB，需联网），之后浏览器会缓存。"
+    : (isSupabase()
+       ? "Supabase 后端：无需本机启动代理，智谱 Key 由云端 secrets 注入（前端 Key 可留空）。"
+       : "需先启动本地代理（双击 start-proxy.bat），并确保已填写 API Key。"));
+}
+function startRecognize(){
+  if(!document.getElementById("cv").width){ alert("请先选择或拍摄一张营养成分表照片"); return; }
+  if(engine==="ai") return runVision();
+  return runOCR();
+}
+const VISION_PROMPT = '你是营养标签识别助手。请仔细读取图片中的「营养成分表」，只输出一个 JSON 对象，不要输出任何解释文字、不要代码块标记。格式：'
+  + '{"name":"食品名称，读不到填未知食品","basis":"per100g 或 per_serving","serving_g":数字或null,'
+  + '"energy_kj":数字或null,"energy_kcal":数字或null,"protein_g":数字或null,"fat_g":数字或null,"carb_g":数字或null,"sodium_mg":数字或null}'
+  + '。要求：数值只填数字不带单位；读不到的字段填 null；如果表头写的是「每份」「每份(XXg)」或「每份XX克」，basis 填 per_serving 并给出 serving_g 的克数。';
+/* GLM-OCR 是文档解析模型，输出原文更可靠，交给本地规则解析 */
+const OCR_PROMPT = '请完整、逐行输出图片中「营养成分表」的文字内容。要求：保留每一行的项目名称（能量/蛋白质/脂肪/碳水化合物/钠等）'
+  + '及其对应的数值和单位（kJ、千焦、g、mg），标明是「每100克/每100毫升」还是「每份」，不要遗漏，不要改写单位。';
+async function runVision(){
+  saveCfg();
+  const cfg=JSON.parse(localStorage.getItem("calVisionCfg")||"{}");
+  const btn=document.getElementById("ocrBtn"); btn.disabled=true; btn.textContent="识别中…";
+  setStatus("正在调用视觉大模型…");
+  try{
+    const model=curModel();
+    const isOcr=/^glm-ocr/i.test(model);
+    const image=document.getElementById("cv").toDataURL("image/jpeg",0.9);
+    const headers=buildHeaders(cfg);
+    const r=await fetch(apiBase()+apiPath(),{
+      method:"POST", headers:headers,
+      body:JSON.stringify({key:cfg.key, image:image, model:model,
+        prompt: isOcr ? OCR_PROMPT : VISION_PROMPT})
+    });
+    const d=await r.json();
+    if(d.error) throw new Error(d.error);
+    const content=d.choices?.[0]?.message?.content;
+    if(!content) throw new Error("返回内容为空："+JSON.stringify(d).slice(0,200));
+    document.getElementById("ocrText").value=String(content);
+    if(isOcr){ parseText(); setStatus("GLM-OCR 已提取表格原文，已用本地规则解析，请核对数值。"); }
+    else fillFromVision(String(content));
+  }catch(e){
+    const hint = /fetch|network|Failed/i.test(e.message)
+      ? (isSupabase()
+         ? "连不上 Supabase。请确认已部署 vision 函数，且接口地址以 /functions/v1 结尾。"
+         : "连不上本地代理。请双击 start-proxy.bat 启动后，再从 http://127.0.0.1:8787/ 打开本页面。")
+      : "";
+    setStatus("调用失败："+e.message+(hint?"　"+hint:""));
+  }
+  btn.disabled=false; btn.textContent="开始识别";
+}
+/* 一键自检：代理是否活着 → Key 是否有效 → 模型是否可用 */
+async function testConn(){
+  saveCfg();
+  const cfg=JSON.parse(localStorage.getItem("calVisionCfg")||"{}");
+  const btn=document.getElementById("testBtn"); btn.disabled=true;
+  const base=apiBase(), path=apiPath();
+  const px="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mP8z8BQDwAEhQGAhKmMIQAAAABJRU5ErkJggg==";
+  const headers=buildHeaders(cfg);
+  let out=[];
+  try{
+    const h=await fetch(base+"/health",{headers:headers});
+    out.push(h.ok ? "① 后端连通：✅ "+base : "① 后端连通：⚠ 响应 "+h.status);
+  }catch(e){
+    out.push("① 后端连通：⚠ /health 无响应（"+e.message+"），继续尝试识别接口…");
+  }
+  const t0=Date.now();
+  try{
+    const m=curModel();
+    const r=await fetch(base+path,{method:"POST",headers:headers,
+      body:JSON.stringify({key:cfg.key,image:px,prompt:"回复两个字：正常",model:m})});
+    const d=await r.json().catch(()=>({error:"响应不是 JSON（HTTP "+r.status+"）"}));
+    if(d.error) out.push("② 识别接口 "+path+"：❌ "+d.error);
+    else out.push("② 识别接口 "+path+"：✅ 正常（模型 "+m+"，"+(Date.now()-t0)+"ms）");
+  }catch(e){
+    out.push("② 识别接口 "+path+"：❌ "+e.message+"　请确认后端已启动且已开启 CORS。");
+  }
+  out.push("③ 密钥来源："+(cfg.key
+    ? "前端传入"
+    : (isSupabase() ? "Supabase 云端 secrets（ZHIPU_API_KEY），前端未填" : "后端环境变量，前端未填")));
+  setStatus(out.join("<br>"));
+  btn.disabled=false;
+}
+function fillFromVision(txt){
+  let obj=null;
+  try{
+    const s=txt.indexOf("{"), e=txt.lastIndexOf("}");
+    obj=JSON.parse(txt.slice(s, e+1));
+  }catch(err){ setStatus("模型返回的不是合法 JSON，请看下方原文手动改："); return; }
+  const num=v=> (v===null||v===undefined||v==="")?null:parseFloat(v);
+  let kj=num(obj.energy_kj), kcal=num(obj.energy_kcal);
+  let p=num(obj.protein_g), f=num(obj.fat_g), c=num(obj.carb_g), na=num(obj.sodium_mg);
+  let factor=1, conv="";
+  if(obj.basis==="per_serving" && num(obj.serving_g)){
+    factor=100/num(obj.serving_g);
+    conv="　已按「每份 "+num(obj.serving_g)+"g」换算为每100g";
+  }
+  const mul=v=> v==null?null:Math.round(v*factor*10)/10;
+  kj=mul(kj); kcal=mul(kcal); p=mul(p); f=mul(f); c=mul(c); na=mul(na);
+  if(obj.name && obj.name!=="未知食品") document.getElementById("fName").value=obj.name;
+  if(kj!=null){ document.getElementById("fKj").value=Math.round(kj); document.getElementById("fKcal").value=Math.round(kj/4.184*10)/10; }
+  else if(kcal!=null) document.getElementById("fKcal").value=Math.round(kcal);
+  const set=(id,v)=>{ if(v!=null) document.getElementById(id).value=v; };
+  set("fP",p); set("fF",f); set("fC",c); set("fNa",na);
+  const miss=[["蛋白质",p],["脂肪",f],["碳水化合物",c],["能量",kj!=null||kcal!=null?1:null]].filter(x=>x[1]==null).map(x=>x[0]);
+  document.getElementById("parseTip").innerHTML = miss.length
+    ? "⚠ 未识别到："+miss.join("、")+"。请手动补填。"+conv
+    : "视觉识别完成，请核对后保存。"+conv;
+  setStatus("识别完成，请核对数值。");
+  switchTab("scan");
+}
+function loadScript(url){
+  return new Promise((res,rej)=>{ const s=document.createElement("script"); s.src=url; s.onload=res; s.onerror=rej; document.head.appendChild(s); });
+}
+async function ensureTesseract(){
+  if(ocrReady) return true;
+  if(ocrLoading){ alert("模型正在加载中，请稍候"); return false; }
+  ocrLoading=true;
+  const cdns=[
+    "https://cdn.jsdelivr.net/npm/tesseract.js@5.1.1/dist/tesseract.min.js",
+    "https://unpkg.com/tesseract.js@5.1.1/dist/tesseract.min.js",
+    "https://cdnjs.cloudflare.com/ajax/libs/tesseract.js/5.1.1/tesseract.min.js"
+  ];
+  for(const u of cdns){
+    try{
+      setStatus("正在加载识别引擎…（"+u.split("/")[2]+"）");
+      await loadScript(u);
+      if(window.Tesseract){ ocrReady=true; ocrLoading=false; return true; }
+    }catch(e){ /* 换下一个 CDN */ }
+  }
+  ocrLoading=false;
+  setStatus("识别引擎加载失败，请检查网络；你也可以直接把营养成分表的文字粘贴到下方文本框后点「从文字中解析」。");
+  return false;
+}
+function setStatus(t){ document.getElementById("ocrStatus").innerHTML=t; }
+function loadPhoto(e){
+  const file=e.target.files[0]; if(!file) return;
+  if(!/^image\//.test(file.type)){ setStatus("请选择图片文件（jpg / png）。"); return; }
+  if(file.size>8*1024*1024){ setStatus("图片超过 8MB，请换一张更小的。"); return; }
+  const img=new Image();
+  img.onload=()=>{
+    const cv=document.getElementById("cv");
+    const scale=Math.min(1, 1400/Math.max(img.width,img.height));
+    cv.width=Math.round(img.width*scale); cv.height=Math.round(img.height*scale);
+    const ctx=cv.getContext("2d");
+    ctx.drawImage(img,0,0,cv.width,cv.height); /* 保持原图，不做灰度/二值化处理 */
+    if(cv.toBlob) cv.toBlob(b=>{ state.photoBlob = b || file; }, "image/jpeg", 0.85);
+    else state.photoBlob = file;
+    document.getElementById("previewBox").style.display="block";
+    setStatus("图片已就绪，点「开始识别」。照片会在「存入我的食物库」时上传到你的云端空间。");
+  };
+  img.src=URL.createObjectURL(file);
+}
+async function runOCR(){
+  if(!document.getElementById("cv").width){ alert("请先选择或拍摄一张营养成分表照片"); return; }
+  const ok=await ensureTesseract(); if(!ok) return;
+  const btn=document.getElementById("ocrBtn"); btn.disabled=true; btn.textContent="识别中…";
+  try{
+    const { data } = await Tesseract.recognize(document.getElementById("cv"), "chi_sim+eng", {
+      logger: m => { if(m.status==="recognizing text") setStatus("识别中… "+Math.round(m.progress*100)+"%");
+                     else if(m.status) setStatus("模型状态："+m.status+"（首次需下载约 20MB 中文模型）"); }
+    });
+    document.getElementById("ocrText").value=data.text||"";
+    setStatus("识别完成，请核对下方解析结果。");
+    parseText();
+  }catch(err){ setStatus("识别出错："+err.message); }
+  btn.disabled=false; btn.textContent="开始识别";
+}
+/* ---- 从文字解析（OCR 结果或手动粘贴） ---- */
+function grabNum(pat, text){
+  const m = text.match(pat);
+  return m ? parseFloat(m[1]) : null;
+}
+function parseText(){
+  let t = document.getElementById("ocrText").value || "";
+  // 常见 OCR 错字归一
+  t = t.replace(/[：:]/g," ").replace(/[,，]/g," ")
+       .replace(/能[量里重]/g,"能量").replace(/蛋[白自日][质貭]/g,"蛋白质")
+       .replace(/碳水[化台][合台]物/g,"碳水化合物").replace(/脂[肪防]/g,"脂肪");
+  const flat = t.replace(/\s+/g," ");
+  // 能量：优先 kJ
+  let kj = grabNum(/能量[^0-9]{0,12}(\d+(?:\.\d+)?)\s*(?:kJ|kj|KJ|千焦|焦)/, flat);
+  if(kj==null) kj = grabNum(/(\d+(?:\.\d+)?)\s*(?:kJ|kj|KJ|千焦)/, flat);
+  let kcal = grabNum(/能量[^0-9]{0,12}(\d+(?:\.\d+)?)\s*(?:kcal|Kcal|千卡|大卡)/, flat);
+  const p = grabNum(/蛋白质[^0-9]{0,12}(\d+(?:\.\d+)?)/, flat);
+  const f = grabNum(/脂肪[^0-9]{0,12}(\d+(?:\.\d+)?)/, flat);
+  const c = grabNum(/碳水化合物[^0-9]{0,12}(\d+(?:\.\d+)?)/, flat);
+  const na = grabNum(/[钠纳][^0-9]{0,12}(\d+(?:\.\d+)?)/, flat);
+  const set=(id,v)=>{ if(v!=null && !isNaN(v)) document.getElementById(id).value=v; };
+  if(kj!=null) { set("fKj",kj); document.getElementById("fKcal").value=Math.round(kj/4.184*10)/10; }
+  else if(kcal!=null) set("fKcal",kcal);
+  set("fP",p); set("fF",f); set("fC",c); set("fNa",na);
+  const tips=[];
+  if(kj==null && kcal==null) tips.push("未识别到能量");
+  [["蛋白质",p],["脂肪",f],["碳水化合物",c]].forEach(x=>{ if(x[1]==null) tips.push("未识别到"+x[0]); });
+  document.getElementById("parseTip").innerHTML = tips.length
+    ? "⚠ 解析可能不完整：" + tips.join("、") + "。请在上方手动补填，或修正左侧原文后重新解析。"
+    : "解析成功，请核对数值后保存。能量已由千焦换算为千卡（1 千卡 ≈ 4.184 kJ）。";
+}
+function syncFromKj(){
+  const kj=parseFloat(document.getElementById("fKj").value);
+  if(!isNaN(kj)) document.getElementById("fKcal").value=Math.round(kj/4.184*10)/10;
+}
+function syncFromKcal(){
+  const k=parseFloat(document.getElementById("fKcal").value);
+  if(!isNaN(k)) document.getElementById("fKj").value=Math.round(k*4.184);
+}
+function autoKcal(){
+  const p=+document.getElementById("fP").value||0, f=+document.getElementById("fF").value||0, c=+document.getElementById("fC").value||0;
+  if(!document.getElementById("fKcal").value && (p||f||c))
+    document.getElementById("fKcal").value=Math.round((p*4+c*4+f*9)*10)/10;
+}
+function clearForm(){
+  ["fName","fKcal","fKj","fP","fF","fC","fNa","fUnit"].forEach(id=>document.getElementById(id).value="");
+  document.getElementById("fUnitG").value=100;
+}
+/* ---- 自建食物库 ---- */
+/* ---- 自建食物库（云端 custom_foods + 对象存储照片） ---- */
+async function saveCustom(){
+  const name=document.getElementById("fName").value.trim();
+  let kcal=parseFloat(document.getElementById("fKcal").value);
+  const p=+document.getElementById("fP").value||0, f=+document.getElementById("fF").value||0, c=+document.getElementById("fC").value||0;
+  if(!name){ alert("请填写食物名称"); return; }
+  if(isNaN(kcal)) kcal=Math.round(p*4+c*4+f*9);
+  if(isNaN(kcal)||kcal<0){ alert("请填写能量，或至少填写蛋白/脂肪/碳水"); return; }
+  if(!state.user){ toast("登录后才能保存","err"); return; }
+  const btn=document.getElementById("saveCustomBtn");
+  if(btn){ btn.disabled=true; btn.textContent="保存中…"; }
+  try{
+    const row={
+      name:name,
+      kcal:Math.round(kcal*10)/10,
+      protein:p, fat:f, carb:c,
+      sodium:(document.getElementById("fNa").value===""?null:+document.getElementById("fNa").value),
+      unit_name:document.getElementById("fUnit").value.trim()||"一份",
+      unit_grams:+document.getElementById("fUnitG").value||100,
+      category:"自建"
+    };
+    if(state.photoBlob){ row.image_path = await uploadPhoto(state.photoBlob); }
+    const r=await cloud.database.from("custom_foods").insert(row).select();
+    if(r.error) throw r.error;
+    const saved=(r.data && r.data[0]) || row;
+    state.custom.unshift(saved);
+    if(saved.image_path) await ensureUrls([saved.image_path]);
+    renderCustom(); clearForm();
+    state.photoBlob=null;
+    const pi=document.getElementById("photo"); if(pi) pi.value="";
+    document.getElementById("previewBox").style.display="none";
+    document.getElementById("parseTip").innerHTML="已保存到云端：<b>"+esc(name)+"</b>（每100g "+Math.round(kcal)+" 千卡）。回到「今日饮食」搜索名称即可使用。";
+    setStatus("已存入云端食物库。");
+    toast("已保存到云端","ok");
+  }catch(err){
+    toast("保存失败："+errText(err,"请稍后重试"),"err");
+  }
+  if(btn){ btn.disabled=false; btn.textContent="存入我的食物库"; }
+}
+async function delCustom(id){
+  const o=state.custom.find(x=>String(x.id)===String(id));
+  if(!o) return;
+  if(!confirm("删除「"+o.name+"」？对应的照片也会一并从云端删除。")) return;
+  try{
+    const r=await cloud.database.from("custom_foods").delete().eq("id", id).select();
+    if(r.error) throw r.error;
+    if(!r.data || !r.data.length){ toast("该条目不存在或不属于你","err"); return; }
+    if(o.image_path){
+      try{ await cloud.storage.remove([o.image_path]); delete state.urlCache[o.image_path]; }catch(e2){ /* 图片删除失败不影响条目 */ }
+    }
+    state.custom=state.custom.filter(x=>String(x.id)!==String(id));
+    renderCustom();
+    toast("已删除","ok");
+  }catch(err){
+    toast("删除失败："+errText(err,"请稍后重试"),"err");
+  }
+}
+function renderCustom(){
+  const box=document.getElementById("cfList");
+  document.getElementById("cfCount").textContent=state.custom.length?"（"+state.custom.length+" 条）":"";
+  if(!state.custom.length){ box.innerHTML='<div class="empty">还没有自建食物</div>'; return; }
+  box.innerHTML=state.custom.map(o=>{
+    const c=state.urlCache[o.image_path];
+    const u=c&&c.url;
+    return `<div class="cf-row">
+      ${u?`<img class="thumb" src="${esc(u)}" alt="">`:""}
+      <div class="cf-main"><div class="ln">${esc(o.name)}<span class="tag off">自建</span></div>
+      <div class="lm">每100g：${+o.kcal||0} 千卡 · 蛋白 ${+o.protein||0}g · 脂肪 ${+o.fat||0}g · 碳水 ${+o.carb||0}g${o.sodium?" · 钠 "+o.sodium+"mg":""}　份量 ${esc(o.unit_name||"一份")}≈${+o.unit_grams||100}g${o.image_path?"　· 照片已存云端":""}</div></div>
+      <button class="del" onclick="delCustom(${o.id})">×</button></div>`;
+  }).join("");
+}
+function exportFoods(){
+  const data=state.custom.map(o=>({
+    name:o.name, kcal:+o.kcal||0, p:+o.protein||0, f:+o.fat||0, c:+o.carb||0,
+    na:(o.sodium==null?0:+o.sodium),
+    unit:o.unit_name||"一份", unitG:+o.unit_grams||100,
+    ts:o.created_at? new Date(o.created_at).getTime() : Date.now(),
+    image_path:o.image_path||null
+  }));
+  const blob=new Blob([JSON.stringify(data,null,2)],{type:"application/json"});
+  const a=document.createElement("a");
+  a.href=URL.createObjectURL(blob); a.download="my-foods-"+today+".json"; a.click();
+}
+function exportCsv(){
+  const esc2=v=>{ const s=String(v==null?"":v); return /[",\n]/.test(s)? '"'+s.replace(/"/g,'""')+'"' : s; };
+  const rows=[["名称","能量(千卡/100g)","蛋白质g","脂肪g","碳水g","钠mg","份量名","份量克重"]]
+    .concat(state.custom.map(o=>[o.name,+o.kcal||0,+o.protein||0,+o.fat||0,+o.carb||0,o.sodium||"",o.unit_name||"",+o.unit_grams||100]));
+  const csv="\uFEFF"+rows.map(r=>r.map(esc2).join(",")).join("\n");
+  const a=document.createElement("a");
+  a.href=URL.createObjectURL(new Blob([csv],{type:"text/csv"})); a.download="my-foods.csv"; a.click();
+}
+function importFoods(e){
+  const file=e.target.files[0]; if(!file) return;
+  const r=new FileReader();
+  r.onload=async ()=>{
+    let arr;
+    try{
+      arr=JSON.parse(r.result);
+      if(!Array.isArray(arr)) throw new Error("格式不是数组");
+    }catch(err){ alert("导入失败："+err.message); e.target.value=""; return; }
+    const rows=arr.filter(o=>o && o.name).map(o=>({
+      name:String(o.name).slice(0,120),
+      kcal:+o.kcal||0,
+      protein:+((o.p!=null?o.p:o.protein)||0),
+      fat:+((o.f!=null?o.f:o.fat)||0),
+      carb:+((o.c!=null?o.c:o.carb)||0),
+      sodium:(o.na!=null && o.na!=="" ? +o.na : (o.sodium!=null && o.sodium!=="" ? +o.sodium : null)),
+      unit_name:String(o.unit||o.unit_name||"一份").slice(0,40),
+      unit_grams:+((o.unitG||o.unit_grams)||100),
+      category:"自建导入"
+    }));
+    if(!rows.length){ alert("文件里没有可用条目"); e.target.value=""; return; }
+    try{
+      const res=await cloud.database.from("custom_foods").insert(rows).select();
+      if(res.error) throw res.error;
+      state.custom=(res.data||[]).concat(state.custom);
+      renderCustom();
+      alert("已导入 "+rows.length+" 条到云端食物库");
+    }catch(err){ alert("导入失败："+errText(err,"请稍后重试")); }
+    e.target.value="";
+  };
+  r.readAsText(file);
+}
+/* ================= 我的数据 ================= */
+document.querySelectorAll("#genderSeg button").forEach(b=>{
+  b.onclick=()=>{ document.querySelectorAll("#genderSeg button").forEach(x=>x.classList.remove("active"));
+    b.classList.add("active"); gender=b.dataset.gender; calc(); };
+});
+document.querySelectorAll("#goalSeg button").forEach(b=>{
+  b.onclick=()=>{ document.querySelectorAll("#goalSeg button").forEach(x=>x.classList.remove("active"));
+    b.classList.add("active"); goal=b.dataset.goal; calc(); };
+});
+["age","height","weight","activity"].forEach(id=>document.getElementById(id).addEventListener("input",calc));
+function calc(){
+  const age=+document.getElementById("age").value, h=+document.getElementById("height").value,
+        w=+document.getElementById("weight").value, act=+document.getElementById("activity").value;
+  if(!age||!h||!w) return;
+  bmrV = 10*w + 6.25*h - 5*age + (gender==="male"?5:-161);
+  tdeeV = bmrV*act;
+  target = goal==="lose"? Math.max(tdeeV-500, bmrV*0.8) : (goal==="gain"? tdeeV+250 : tdeeV);
+  const bmi=w/Math.pow(h/100,2);
+  let lv="正常",col="var(--green)";
+  if(bmi<18.5){lv="偏瘦";col="#0891b2";} else if(bmi>=24&&bmi<28){lv="超重";col="var(--orange)";} else if(bmi>=28){lv="肥胖";col="var(--red)";}
+  document.getElementById("bmrNum").textContent=Math.round(bmrV);
+  document.getElementById("tdeeNum").textContent=Math.round(tdeeV);
+  document.getElementById("bmiNum").textContent=bmi.toFixed(1);
+  const el=document.getElementById("bmiLevel"); el.textContent=lv; el.style.color=col;
+  const gName={lose:"减脂（每日缺口约500千卡）",maintain:"维持体重",gain:"增肌（每日盈余约250千卡）"}[goal];
+  document.getElementById("targetTxt").textContent=Math.round(target)+" 千卡/天（"+gName+"）";
+  document.getElementById("goalKcal").textContent=Math.round(target);
+  renderLog(); scheduleProfileSave();
+}
+bindAuthEvents(); loadCfg(); renderRuntimeStatus(); boot()
+
+/* 自有域名下的提示：云服务要求官方 Origin，同源代理无解，直接指引到官方地址 */
+function guardOwnDomain() {
+  if (IS_OFFICIAL_SITE) return;              /* 官方域名一切正常 */
+  var sk = $("storageKind");
+  if (sk) sk.textContent = "当前域名无法登录";
+  showOriginGate();
+}
+</script>
+</body>
+</html>
