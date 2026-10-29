@@ -689,6 +689,33 @@ html[data-theme="dark"] .advice.over{color:#E9A0A0}
 .crop-preview .cp-t{font-size:12px;color:var(--muted);line-height:1.7}
 .crop-preview .cp-t b{display:block;color:var(--text);font-size:12.5px;margin-bottom:2px}
 
+/* ---------- 裁剪：尺寸自选 ---------- */
+.crop-size-row{
+  display:flex;align-items:flex-end;gap:8px;flex-wrap:wrap;margin-top:12px;
+  padding:11px 12px;border-radius:11px;background:var(--surface-2);
+}
+.crop-size-row .cs-item{display:flex;flex-direction:column;gap:5px}
+.crop-size-row label{font-size:11px;color:var(--muted);white-space:nowrap}
+.crop-size-row input[type=number]{
+  width:88px;padding:7px 9px;border:1px solid var(--border);border-radius:8px;
+  background:var(--card);color:var(--text);font-family:inherit;font-size:13px;
+}
+.crop-size-row input[type=number]:focus{outline:none;border-color:var(--green)}
+.crop-x{font-size:13px;color:var(--muted);padding-bottom:8px}
+.crop-presets{display:flex;gap:6px;flex-wrap:wrap;margin-top:10px;align-items:center}
+.crop-presets .cp-label{font-size:11px;color:var(--muted);margin-right:2px}
+.crop-preset{
+  border:1px solid var(--border);background:var(--card);border-radius:8px;
+  padding:6px 11px;font-family:inherit;font-size:11.5px;color:var(--text);cursor:pointer;transition:.2s;
+}
+.crop-preset:hover{border-color:var(--green);color:var(--green)}
+.crop-preset.on{background:var(--green);border-color:var(--green);color:#fff;font-weight:600}
+.crop-lock{
+  display:inline-flex;align-items:center;gap:5px;font-size:11.5px;color:var(--muted);
+  cursor:pointer;user-select:none;margin-left:auto;
+}
+.crop-lock input{accent-color:var(--green);width:14px;height:14px;margin:0}
+
 /* ---------- 表单分组 ---------- */
 .form-group{margin-bottom:18px}
 .form-group:last-child{margin-bottom:0}
@@ -1334,7 +1361,43 @@ html.intro-done .wrap{animation:contentIn .6s ease both}
           <button class="btn-sm" type="button" onclick="cropFull()">用整张图</button>
           <button class="btn" type="button" onclick="applyCrop()">应用裁剪</button>
         </div>
-        <div class="crop-hint">💡 只框住「营养成分表」或菜品那一块，识别更快更准。拖动方框移动，拖四角缩放；不裁剪则直接识别整张图。</div>
+
+        <!-- 自选尺寸：直接填宽高像素 -->
+        <div class="crop-size-row">
+          <div class="cs-item">
+            <label for="cropW">宽度 px</label>
+            <input type="number" id="cropW" min="20" step="1" oninput="onCropSizeInput()">
+          </div>
+          <span class="crop-x">×</span>
+          <div class="cs-item">
+            <label for="cropH">高度 px</label>
+            <input type="number" id="cropH" min="20" step="1" oninput="onCropSizeInput()">
+          </div>
+          <div class="cs-item">
+            <label for="cropX">左上角 X</label>
+            <input type="number" id="cropX" min="0" step="1" oninput="onCropPosInput()">
+          </div>
+          <div class="cs-item">
+            <label for="cropY">左上角 Y</label>
+            <input type="number" id="cropY" min="0" step="1" oninput="onCropPosInput()">
+          </div>
+          <button class="btn-sm" type="button" onclick="applyCropSize()" style="padding:8px 14px">按此尺寸</button>
+          <label class="crop-lock"><input type="checkbox" id="cropLock" onchange="onCropLockChange()">锁定比例</label>
+        </div>
+
+        <!-- 快捷区域 -->
+        <div class="crop-presets">
+          <span class="cp-label">快捷选区</span>
+          <button class="crop-preset" type="button" data-preset="full" onclick="cropPreset('full')">整张</button>
+          <button class="crop-preset" type="button" data-preset="center" onclick="cropPreset('center')">居中 70%</button>
+          <button class="crop-preset" type="button" data-preset="top" onclick="cropPreset('top')">上半</button>
+          <button class="crop-preset" type="button" data-preset="bottom" onclick="cropPreset('bottom')">下半</button>
+          <button class="crop-preset" type="button" data-preset="left" onclick="cropPreset('left')">左半</button>
+          <button class="crop-preset" type="button" data-preset="right" onclick="cropPreset('right')">右半</button>
+          <button class="crop-preset" type="button" data-preset="label" onclick="cropPreset('label')">标签位</button>
+        </div>
+
+        <div class="crop-hint">💡 只框住「营养成分表」或菜品那一块，识别更快更准。拖动方框移动、拖四角缩放，也可直接填宽高与位置；不裁剪则识别整张图。</div>
       </div>
 
       <div id="previewBox" style="margin-top:14px;display:none">
@@ -3322,6 +3385,90 @@ function startRecognize(){
   if(!ocrHasImage()){ alert("请先选择或拍摄一张营养成分表照片"); return; }
   return runVision();
 }
+/* ---- 裁剪尺寸自选：数字输入 / 快捷区域 / 等比锁定 ---- */
+function setCropRect(sx, sy, sw, sh){
+  var img = cropState.img; if(!img) return;
+  cropState.sx = Math.max(0, Math.min(Math.round(sx), img.width - 20));
+  cropState.sy = Math.max(0, Math.min(Math.round(sy), img.height - 20));
+  cropState.sw = Math.max(20, Math.min(Math.round(sw), img.width - cropState.sx));
+  cropState.sh = Math.max(20, Math.min(Math.round(sh), img.height - cropState.sy));
+  syncCropBox();
+}
+/* 把当前选框尺寸回填到输入框 */
+function syncCropInputs(){
+  var w = document.getElementById("cropW"), h = document.getElementById("cropH"),
+      x = document.getElementById("cropX"), y = document.getElementById("cropY");
+  if(w) w.value = Math.round(cropState.sw);
+  if(h) h.value = Math.round(cropState.sh);
+  if(x) x.value = Math.round(cropState.sx);
+  if(y) y.value = Math.round(cropState.sy);
+}
+/* 改宽高时保持左上角不动；锁定比例时按当前比例联动另一边 */
+function onCropSizeInput(){
+  var img = cropState.img; if(!img) return;
+  var w = parseFloat(document.getElementById("cropW").value),
+      h = parseFloat(document.getElementById("cropH").value);
+  if(!isFinite(w) || !isFinite(h) || w < 20 || h < 20) return;
+  var lock = document.getElementById("cropLock") && document.getElementById("cropLock").checked;
+  if(lock){
+    /* 以宽为准推高（更符合直觉：宽度是主方向） */
+    h = Math.round(w * cropState.sh / Math.max(1, cropState.sw));
+    document.getElementById("cropH").value = h;
+  }
+  setCropRect(cropState.sx, cropState.sy, w, h);
+}
+/* 改位置时不改尺寸 */
+function onCropPosInput(){
+  var img = cropState.img; if(!img) return;
+  var x = parseFloat(document.getElementById("cropX").value),
+      y = parseFloat(document.getElementById("cropY").value);
+  if(!isFinite(x) || !isFinite(y)) return;
+  setCropRect(x, y, cropState.sw, cropState.sh);
+}
+/* 点「按此尺寸」：把输入框的宽高位置真正套用到选框并应用 */
+function applyCropSize(){
+  var img = cropState.img; if(!img) return;
+  var w = parseFloat(document.getElementById("cropW").value),
+      h = parseFloat(document.getElementById("cropH").value),
+      x = parseFloat(document.getElementById("cropX").value),
+      y = parseFloat(document.getElementById("cropY").value);
+  if(!isFinite(w) || !isFinite(h) || w < 20 || h < 20){
+    toast("宽高需至少 20 像素","err"); syncCropInputs(); return;
+  }
+  if(!isFinite(x)) x = cropState.sx;
+  if(!isFinite(y)) y = cropState.sy;
+  setCropRect(x, y, w, h);
+  applyCrop();
+  toast("已按 " + Math.round(cropState.sw) + "×" + Math.round(cropState.sh) + " 裁剪","ok");
+}
+function onCropLockChange(){
+  cropState.lockRatio = !!(document.getElementById("cropLock") && document.getElementById("cropLock").checked);
+  if(cropState.lockRatio) toast("已锁定比例：拖角时宽高同步变化","ok");
+}
+/* 快捷区域 */
+function cropPreset(kind){
+  var img = cropState.img; if(!img) return;
+  var W = img.width, H = img.height;
+  var r;
+  if(kind === "full")        r = [0, 0, W, H];
+  else if(kind === "center")  r = [W*0.15, H*0.15, W*0.70, H*0.70];
+  else if(kind === "top")    r = [0, 0, W, H*0.5];
+  else if(kind === "bottom") r = [0, H*0.5, W, H*0.5];
+  else if(kind === "left")   r = [0, 0, W*0.5, H];
+  else if(kind === "right")  r = [W*0.5, 0, W*0.5, H];
+  else if(kind === "label")  r = [W*0.12, H*0.10, W*0.76, H*0.55];
+  else return;
+  setCropRect(r[0], r[1], r[2], r[3]);
+  document.querySelectorAll(".crop-preset").forEach(function(b){
+    b.classList.toggle("on", b.dataset.preset === kind);
+  });
+  applyCrop();
+}
+/* 预设按钮高亮跟随手动操作清掉 */
+function clearPresetHighlight(){
+  document.querySelectorAll(".crop-preset.on").forEach(function(b){ b.classList.remove("on"); });
+}
+
 /* 拖拽交互：移动选框 + 四角缩放 */
 (function bindCrop(){
   var box = document.getElementById("cropBox");
@@ -3354,6 +3501,7 @@ function startRecognize(){
     var ox = pt.clientX - rect.left, oy = pt.clientY - rect.top;
     var dx = (ox - c.ox0) * scale, dy = (oy - c.oy0) * scale;
     var W = c.img.width, H = c.img.height;
+    clearPresetHighlight();
     if(c.dragging === "move"){
       c.sx = Math.max(0, Math.min(W - c.sw, c.sx0 + dx));
       c.sy = Math.max(0, Math.min(H - c.sh, c.sy0 + dy));
@@ -3363,6 +3511,13 @@ function startRecognize(){
       if(c.dragging === "sw" || c.dragging === "se"){ nsh = c.sh0 + dy; }
       if(c.dragging === "nw" || c.dragging === "ne"){ nsx = c.sx0 + dx; nsy = c.sy0 + dy; }
       if(c.dragging === "nw" || c.dragging === "sw"){ nsw = c.sw0 + dx; }
+      /* 锁定比例：以横向缩放为准推算纵向，避免拖成奇怪的形状 */
+      if(c.lockRatio){
+        var ratio = c.sw0 / Math.max(1, c.sh0);
+        if(c.dragging === "ne" || c.dragging === "se") nsh = nsw / ratio;
+        else if(c.dragging === "nw" || c.dragging === "sw"){ nsh = nsw / ratio; nsy = c.sy0 + (c.sh0 - nsh); }
+        else if(c.dragging === "nw" || c.dragging === "ne"){ nsw = nsh * ratio; nsx = c.sx0 + (c.sw0 - nsw); }
+      }
       nsw = Math.max(20, Math.min(nsw, W)); nsh = Math.max(20, Math.min(nsh, H));
       nsx = Math.max(0, Math.min(nsx, W - nsw)); nsy = Math.max(0, Math.min(nsy, H - nsh));
       c.sx = nsx; c.sy = nsy; c.sw = nsw; c.sh = nsh;
@@ -3497,7 +3652,7 @@ function fillFromVision(txt){
    #cv 是「识别用画布」——未裁剪时等于原图，裁剪后等于选区。
    AI 营养表识别（ocrImageUrl）与 AI 菜品识别（dishToDataUrl）都从 #cv 取图，
    所以裁剪对两条链路同时生效；state.photoBlob 也同步为裁剪结果。 */
-var cropState = { img:null, sx:0, sy:0, sw:0, sh:0, dragging:null, sx0:0, sy0:0, sw0:0, sh0:0, ox0:0, oy0:0, scale:1 };
+var cropState = { img:null, sx:0, sy:0, sw:0, sh:0, dragging:null, sx0:0, sy0:0, sw0:0, sh0:0, ox0:0, oy0:0, scale:1, lockRatio:false };
 function syncCropBox(){
   var st = document.getElementById("cropStage");
   var box = document.getElementById("cropBox");
@@ -3510,6 +3665,7 @@ function syncCropBox(){
   box.style.width = (c.sw / scale) + "px";
   box.style.height = (c.sh / scale) + "px";
   document.getElementById("cropSize").textContent = Math.round(c.sw) + " × " + Math.round(c.sh) + " 像素";
+  syncCropInputs();
 }
 /* 恢复成整张图（#cv 与照片都还原） */
 function restoreFullImage(){
