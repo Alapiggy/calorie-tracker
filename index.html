@@ -716,6 +716,70 @@ html[data-theme="dark"] .advice.over{color:#E9A0A0}
 }
 .crop-lock input{accent-color:var(--green);width:14px;height:14px;margin:0}
 
+/* ---------- 日期选择器 ---------- */
+.date-bar{
+  display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin-bottom:14px;
+  padding:10px 12px;border-radius:12px;background:var(--surface-2);
+}
+.date-bar .db-ico{font-size:15px;flex:none;line-height:1.4}
+.date-bar label{font-size:12px;color:var(--muted);flex:none}
+.date-bar input[type=date]{
+  border:1px solid var(--border);border-radius:9px;background:var(--card);color:var(--text);
+  font-family:inherit;font-size:13px;padding:7px 10px;min-height:38px;
+}
+.date-bar input[type=date]:focus{outline:none;border-color:var(--green)}
+.date-bar .db-tag{
+  font-size:11.5px;font-weight:600;color:var(--green);background:var(--green-l);
+  border-radius:999px;padding:3px 10px;white-space:nowrap;
+}
+.date-bar .db-sp{flex:1}
+.date-bar .btn-sm{white-space:nowrap}
+.history-tip{
+  display:flex;gap:8px;align-items:flex-start;margin-bottom:14px;padding:10px 13px;
+  border-radius:11px;background:var(--c-bg);font-size:12.5px;color:var(--text);line-height:1.7;
+}
+.history-tip .ht-ico{font-size:14px;flex:none;line-height:1.4}
+
+/* ---------- 上传方式选择（拍照 / 相册） ---------- */
+.up-ways{display:flex;gap:8px;flex-wrap:wrap;margin-top:12px}
+.up-way{
+  flex:1;min-width:140px;display:flex;align-items:center;gap:9px;
+  border:1.5px solid var(--border);border-radius:12px;background:var(--card);
+  padding:11px 13px;font-family:inherit;text-align:left;cursor:pointer;transition:.2s;
+}
+.up-way:hover{border-color:var(--green);background:var(--green-l)}
+.up-way .uw-ico{
+  width:34px;height:34px;flex:none;border-radius:10px;display:grid;place-items:center;
+  background:var(--surface-2);font-size:16px;
+}
+.up-way .uw-main{display:block;min-width:0}
+.up-way .uw-main b{display:block;font-size:13.5px;font-weight:600;color:var(--text);line-height:1.4}
+.up-way .uw-main small{display:block;font-size:11px;color:var(--muted);margin-top:2px;line-height:1.5}
+
+/* ---------- 裁剪把手触摸热区（手指比鼠标粗） ---------- */
+.crop-box .crop-h{
+  position:absolute;width:16px;height:16px;border:3px solid var(--green);background:#fff;border-radius:3px;
+  /* 视觉 16px，触摸热区扩到 30px，中心不变 —— 手指更容易点中 */
+  box-sizing:content-box;
+}
+.crop-box .crop-h::after{
+  content:"";position:absolute;left:-7px;top:-7px;right:-7px;bottom:-7px;
+}
+.crop-box .h-nw{left:-9px;top:-9px;border-right:none;border-bottom:none;cursor:nwse-resize}
+.crop-box .h-ne{right:-9px;top:-9px;border-left:none;border-bottom:none;cursor:nesw-resize}
+.crop-box .h-sw{left:-9px;bottom:-9px;border-right:none;border-top:none;cursor:nesw-resize}
+.crop-box .h-se{right:-9px;bottom:-9px;border-left:none;border-top:none;cursor:nwse-resize}
+/* 触摸端：把手本身放大，避免误触邻边 */
+@media (pointer:coarse){
+  .crop-box .crop-h{width:22px;height:22px;border-width:3px}
+  .crop-box .h-nw{left:-11px;top:-11px}
+  .crop-box .h-ne{right:-11px;top:-11px}
+  .crop-box .h-sw{left:-11px;bottom:-11px}
+  .crop-box .h-se{right:-11px;bottom:-11px}
+  .crop-box .crop-h::after{left:-9px;top:-9px;right:-9px;bottom:-9px}
+  .crop-size{font-size:12px}
+}
+
 /* ---------- 表单分组 ---------- */
 .form-group{margin-bottom:18px}
 .form-group:last-child{margin-bottom:0}
@@ -1206,7 +1270,19 @@ html.intro-done .wrap{animation:contentIn .6s ease both}
       <button class="tb-close" type="button" onclick="dismissTip('tipLog')" aria-label="关闭提示">×</button>
     </div>
     <div class="card">
-      <h2>汇总今日</h2>
+      <div class="date-bar">
+        <span class="db-ico">📅</span>
+        <label for="viewDate">查看日期</label>
+        <input type="date" id="viewDate" max="" onchange="setViewDate(this.value)">
+        <span class="db-tag" id="viewDateLabel">今天</span>
+        <span class="db-sp"></span>
+        <button class="btn-sm hidden" type="button" id="backTodayBtn" onclick="backToToday()">回到今天</button>
+      </div>
+      <div class="history-tip hidden" id="historyTip">
+        <span class="ht-ico">🕘</span>
+        <span id="dateHint">正在查看历史记录，可以直接编辑或删除。</span>
+      </div>
+      <h2 id="sumTitle">汇总今日</h2>
       <div class="summary" id="summaryBox">
         <div class="ring-wrap">
           <svg class="ring" viewBox="0 0 180 180" aria-hidden="true">
@@ -1303,7 +1379,7 @@ html.intro-done .wrap{animation:contentIn .6s ease both}
     </div>
 
     <div class="card">
-      <h2>饮食记录 <span class="h2-count" id="logCount"></span></h2>
+      <h2><span id="logTitle">饮食记录</span> <span class="h2-count" id="logCount"></span></h2>
       <div id="logList">
         <div class="empty-state">
           <svg class="plate-svg" viewBox="0 0 120 120" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
@@ -1340,11 +1416,25 @@ html.intro-done .wrap{animation:contentIn .6s ease both}
         <div class="dz-ico">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 16.5V4"></path><path d="M7.5 8.5 12 4l4.5 4.5"></path><path d="M4 15v3.5A1.5 1.5 0 0 0 5.5 20h13a1.5 1.5 0 0 0 1.5-1.5V15"></path></svg>
         </div>
-        <div class="dz-t">Drop 营养成分表图片到这里</div>
-        <div class="dz-sub">或 <span class="dz-link">点击选择文件</span></div>
-        <div class="dz-hint">支持 JPG / PNG，最大 8MB；手机可直接调用相机拍照</div>
+        <div class="dz-t">把营养成分表图片拖到这里</div>
+        <div class="dz-sub">或用下方按钮选择来源</div>
+        <div class="dz-hint">支持 JPG / PNG / HEIC，最大 8MB</div>
       </div>
-      <input type="file" id="photo" accept="image/*" capture="environment" onchange="loadPhoto(event)" class="sr-only">
+
+      <!-- 上传来源：拍照 / 相册或文件。带 capture 会强制开相机，
+           所以只有「拍照」按钮才动态加 capture 属性 -->
+      <div class="up-ways">
+        <button class="up-way" type="button" onclick="pickSource('camera')">
+          <span class="uw-ico">📷</span>
+          <span class="uw-main"><b>拍照</b><small>直接调用相机拍一张标签</small></span>
+        </button>
+        <button class="up-way" type="button" onclick="pickSource('album')">
+          <span class="uw-ico">🖼️</span>
+          <span class="uw-main"><b>从相册 / 文件选</b><small>选手机相册里的图或文件</small></span>
+        </button>
+      </div>
+
+      <input type="file" id="photo" accept="image/*" onchange="loadPhoto(event)" class="sr-only">
 
       <!-- 裁剪区：框出要识别的区域（营养成分表 / 菜品），AI 只看这一块 -->
       <div class="crop-wrap" id="cropWrap">
@@ -2379,7 +2469,8 @@ function validateAll(){
 var gender = "male", goal = "maintain", target = 0, bmrV = 0, tdeeV = 0;
 var src = "local", selected = null;
 var today = todayStr();
-var state = { user: null, profile: null, logs: [], custom: [], urlCache: {}, ready: false, photoBlob: null, metrics: [], kcalHistory: {} };
+var viewDate = today;          /* 正在查看/编辑的日期（可回看过去） */
+var state = { user: null, profile: null, logs: [], custom: [], urlCache: {}, ready: false, photoBlob: null, metrics: [], kcalHistory: {}, freqStats: {} };
 var pendingLoginOtp = null, pendingSignupOtp = null;
 
 /* ================= 登录 / 注册 ================= */
@@ -2638,8 +2729,9 @@ async function loadProfile() {
   state.profile = (ins.data && ins.data[0]) || null;
 }
 async function loadLogs() {
+  refreshToday();
   var r = await cloud.database.from("food_logs").select("*")
-    .eq("log_date", today).order("created_at", { ascending: true });
+    .eq("log_date", viewDate).order("created_at", { ascending: true });
   if (r.error) throw r.error;
   state.logs = r.data || [];
 }
@@ -2655,19 +2747,23 @@ async function loadBodyMetrics(){
 /* ---- 每日热量摄入历史（聚合自 food_logs） ---- */
 async function loadKcalHistory(){
   try{
-    var r=await cloud.database.from("food_logs").select("log_date,kcal,grams")
+    var r=await cloud.database.from("food_logs").select("log_date,kcal,grams,name")
       .order("log_date", { ascending: true });
     if(r.error) throw r.error;
-    var map={};
+    var map={}, freq={};
     (r.data||[]).forEach(function(l){
       var d=l.log_date;
       if(d && d.length>10) d=d.slice(0,10);
       if(!d) return;
       if(!map[d]) map[d]=0;
       map[d]+=(+l.kcal||0)*((+l.grams||0)/100);
+      /* 全量频次：用于「常吃」快捷标签，切换查看日期时不应漂移 */
+      var nm=l.name ? String(l.name) : "";
+      if(nm) freq[nm]=(freq[nm]||0)+1;
     });
     state.kcalHistory=map;
-  }catch(e){ state.kcalHistory={}; }
+    state.freqStats=freq;
+  }catch(e){ state.kcalHistory={}; state.freqStats={}; }
 }
 async function saveTodayMetric(){
   if(!state.user){ toast("登录后才能保存","err"); return; }
@@ -2953,6 +3049,60 @@ function setSrc(s){
   document.getElementById("barcodeLine").style.display = s==="off"?"flex":"none";
   document.getElementById("results").innerHTML = '<div class="empty">输入关键词开始搜索</div>';
 }
+/* ================= 日期选择 / 历史回看 ================= */
+function fmtDateCn(d){
+  var t=String(d||"").split("-");
+  if(t.length<3) return d||"";
+  return t[1].replace(/^0/,"") + "月" + t[2].replace(/^0/,"") + "日";
+}
+/* 页面开着过了午夜，today 也要跟着走 */
+function refreshToday(){
+  var t = todayStr();
+  if(t !== today){
+    today = t;
+    if(viewDate < today){ /* 仍指向过去，保持不变 */ }
+    else { viewDate = t; }
+  }
+}
+function isToday(){ return viewDate === today; }
+function setViewDate(d){
+  if(!d) return;
+  refreshToday();
+  if(d > today){ toast("不能记录未来日期","err"); syncDatePicker(); return; }
+  viewDate = d;
+  syncDatePicker();
+  loadLogs().then(function(){ renderLog(); renderTrends(); }).catch(function(e){
+    toast("加载该日记录失败：" + errText(e,"请稍后重试"),"err");
+  });
+}
+async function backToToday(){
+  refreshToday();
+  viewDate = today;
+  syncDatePicker();
+  await loadLogs();
+  renderLog();
+  toast("已回到今天","ok");
+}
+/* 同步日期选择器 UI 与标题 */
+function syncDatePicker(){
+  var dp=document.getElementById("viewDate");
+  if(dp){
+    if(dp.value !== viewDate) dp.value = viewDate;
+    dp.max = today;              /* 不能选未来日期 */
+  }
+  var lbl=document.getElementById("viewDateLabel");
+  if(lbl) lbl.textContent = isToday() ? "今天" : fmtDateCn(viewDate);
+  var h2=document.getElementById("sumTitle");
+  if(h2) h2.textContent = isToday() ? "汇总今日" : ("汇总 " + fmtDateCn(viewDate));
+  var back=document.getElementById("backTodayBtn");
+  if(back) back.classList.toggle("hidden", isToday());
+  var tip=document.getElementById("historyTip");
+  if(tip) tip.classList.toggle("hidden", isToday());
+  var hint=document.getElementById("dateHint");
+  if(hint) hint.textContent = isToday()
+    ? "记录的是今天（" + fmtDateCn(today) + "）的饮食"
+    : "正在查看 " + viewDate + " 的记录，可以直接编辑或删除";
+}
 /* ================= 搜索 ================= */
 let timer=null;
 /* 常用食物快捷标签：分类筛选 + 常吃一键加入 */
@@ -2995,8 +3145,11 @@ function quickFilter(cat){
 function renderQuickFreq(){
   const box=document.getElementById("quickFreq");
   if(!box) return;
-  const freq={};
-  state.logs.forEach(l=>{ freq[l.name]=(freq[l.name]||0)+1; });
+  /* 用全量频次（所有日期），切换查看日期时「常吃」不变 */
+  const freq=Object.assign({}, state.freqStats||{});
+  if(!Object.keys(freq).length){
+    state.logs.forEach(l=>{ freq[l.name]=(freq[l.name]||0)+1; });
+  }
   state.custom.forEach(o=>{ freq[o.name]=(freq[o.name]||0)+0.4; });
   const list=Object.keys(freq).sort((a,b)=>freq[b]-freq[a]).slice(0,8);
   if(!list.length){
@@ -3130,7 +3283,7 @@ async function addFood(){
   if(btn){ btn.disabled=true; btn.textContent="保存中…"; }
   try{
     const r=await cloud.database.from("food_logs").insert({
-      log_date: today,
+      log_date: viewDate,
       name: selected.name,
       grams: g,
       kcal: selected.kcal,
@@ -3143,7 +3296,7 @@ async function addFood(){
     if(r.error) throw r.error;
     if(r.data && r.data[0]) state.logs.push(r.data[0]);
     renderLog();
-    toast("已加入今日记录","ok");
+    toast(isToday() ? "已加入今日记录" : ("已加入 " + fmtDateCn(viewDate) + " 的记录"), "ok");
   }catch(err){
     toast("保存失败："+errText(err,"请检查网络后重试"),"err");
   }
@@ -3207,7 +3360,9 @@ function renderLog(){
       </div>
     </div>`;
   }).join("");
-  document.getElementById("logCount").textContent = state.logs.length? "（"+state.logs.length+" 项）":"";
+  document.getElementById("logCount").textContent = state.logs.length? ("（"+state.logs.length+" 项）"):"";
+  var lt=document.getElementById("logTitle");
+  if(lt) lt.textContent = isToday() ? "饮食记录" : (fmtDateCn(viewDate) + " 的饮食记录");
   document.getElementById("sumKcal").textContent=Math.round(K);
   document.getElementById("sumP").textContent=Math.round(P)+" g";
   document.getElementById("sumF").textContent=Math.round(F)+" g";
@@ -3475,11 +3630,17 @@ function clearPresetHighlight(){
   var stage = document.getElementById("cropStage");
   if(!box || !stage) return;
   function startDrag(mode, ev){
-    ev.preventDefault(); ev.stopPropagation();
-    var c = cropState, img = c.img; if(!img) return;
+    /* 鼠标传 MouseEvent、触摸传 TouchEvent，两者的坐标取法不同：
+       统一取 ev.touches[0]（触摸）或 ev 本身（鼠标）。
+       注意：绝不能传 Touch 对象 —— 它没有 preventDefault/stopPropagation，
+       调用会抛 TypeError，函数中断后 dragging 不会被赋值，触屏拖动直接失效。 */
+    if(ev && ev.preventDefault) ev.preventDefault();
+    if(ev && ev.stopPropagation) ev.stopPropagation();
+    var pt = (ev && ev.touches && ev.touches[0]) || ev;
+    var c = cropState, img = c.img; if(!img || !pt) return;
     var rect = stage.getBoundingClientRect();
     c.dragging = mode;
-    c.ox0 = ev.clientX - rect.left; c.oy0 = ev.clientY - rect.top;
+    c.ox0 = pt.clientX - rect.left; c.oy0 = pt.clientY - rect.top;
     c.sx0 = c.sx; c.sy0 = c.sy; c.sw0 = c.sw; c.sh0 = c.sh;
     c.scale = img.width / (rect.width || img.width);
   }
@@ -3496,10 +3657,13 @@ function clearPresetHighlight(){
     startDrag(pickMode(e.target), e);
   });
   box.addEventListener("touchstart", function(e){
-    var p = e.touches[0];
-    if(!p) return;
-    startDrag(pickMode(e.target), p);
+    if(!e.touches || !e.touches[0]) return;
+    startDrag(pickMode(e.target), e);   /* 传事件本身，不是 Touch */
   }, {passive:false});
+  /* 手机上按住把手拖动时，页面跟着滚动会让选框「跑掉」——
+     在把手与选框上禁止默认手势，滚动只发生在空白画布区。 */
+  stage.addEventListener("touchstart", function(e){ e.preventDefault(); }, {passive:false});
+  stage.addEventListener("touchmove", function(e){ e.preventDefault(); }, {passive:false});
   function onMove(ev){
     var c = cropState; if(!c.dragging || !c.img) return;
     ev.preventDefault();
@@ -3730,6 +3894,18 @@ function applyCrop(){
   document.getElementById("cropPreviewTip").textContent =
     Math.round(c.sw) + "×" + Math.round(c.sh) + " 像素，识别与上传都用这一块";
   setStatus("裁剪已应用，接下来点「AI 识别营养成分表」或「AI 识别这道菜」。");
+}
+/* 选择上传来源：
+   camera → 加 capture="environment"，手机直接开相机
+   album  → 不带 capture，手机弹出系统选择器（相册 / 图库 / 文件），可任选
+   桌面端两者都退化为普通文件选择框。 */
+function pickSource(kind){
+  var el=document.getElementById("photo");
+  if(!el) return;
+  el.removeAttribute("capture");
+  if(kind === "camera") el.setAttribute("capture","environment");
+  try{ el.value=""; }catch(e){}
+  el.click();
 }
 function loadPhoto(e){
   const file = e.target.files[0]; if(!file) return;
@@ -4116,7 +4292,7 @@ function calc(){
   document.getElementById("goalKcal").textContent=Math.round(target);
   renderLog(); scheduleProfileSave();
 }
-bindAuthEvents(); renderRuntimeStatus(); renderQuickCats(); renderQuickFreq();
+bindAuthEvents(); renderRuntimeStatus(); renderQuickCats(); renderQuickFreq(); syncDatePicker();
 bindFieldValidation(); restoreTips(); boot(); loadDishModels(); loadOcrModels(); cfInit();
 
 /* 自有域名下的提示：云服务要求官方 Origin，同源代理无解，直接指引到官方地址 */
@@ -5017,9 +5193,10 @@ async function recognizeDish(){
   /* ---------------- 6. 拖拽上传 ---------------- */
   var dz = $("dropzone"), fi = $("photo");
   if (dz && fi) {
-    dz.addEventListener("click", function () { fi.click(); });
+    /* 点拖拽区 = 从相册/文件选（不强制开相机） */
+    dz.addEventListener("click", function () { pickSource("album"); });
     dz.addEventListener("keydown", function (e) {
-      if (e.key === "Enter" || e.key === " ") { e.preventDefault(); fi.click(); }
+      if (e.key === "Enter" || e.key === " ") { e.preventDefault(); pickSource("album"); }
     });
     ["dragenter", "dragover"].forEach(function (t) {
       dz.addEventListener(t, function (e) { e.preventDefault(); e.stopPropagation(); dz.classList.add("drag"); });
