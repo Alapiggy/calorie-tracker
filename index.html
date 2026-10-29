@@ -589,76 +589,66 @@ html[data-theme="dark"] .advice.over{color:#E9A0A0}
 }
 .tag-card.on .tc-check{display:grid}
 
-/* ---------- 图片裁剪 ---------- */
-.crop-wrap{margin-top:14px;display:none}
-.crop-stage{
-  position:relative;display:inline-block;max-width:100%;line-height:0;
-  border:1px solid var(--border);border-radius:12px;overflow:hidden;background:var(--surface-2);
-  touch-action:none;user-select:none;cursor:crosshair;
-}
-.crop-stage canvas{display:block;max-width:100%;height:auto}
-.crop-mask{position:absolute;inset:0;background:rgba(15,23,42,.52);pointer-events:none}
-.crop-box{
-  position:absolute;border:2px solid var(--green);border-radius:4px;
-  box-shadow:0 0 0 9999px rgba(15,23,42,.52),0 0 0 1px rgba(255,255,255,.5) inset;
-  cursor:move;touch-action:none;
-}
-.crop-box .crop-h{
-  position:absolute;width:16px;height:16px;border:3px solid var(--green);background:#fff;border-radius:3px;
-}
-.crop-box .h-nw{left:-9px;top:-9px;border-right:none;border-bottom:none;cursor:nwse-resize}
-.crop-box .h-ne{right:-9px;top:-9px;border-left:none;border-bottom:none;cursor:nesw-resize}
-.crop-box .h-sw{left:-9px;bottom:-9px;border-right:none;border-top:none;cursor:nesw-resize}
-.crop-box .h-se{right:-9px;bottom:-9px;border-left:none;border-top:none;cursor:nwse-resize}
-.crop-box .crop-size{
-  position:absolute;left:50%;transform:translateX(-50%);bottom:-26px;
-  font-size:11px;color:#fff;background:rgba(15,23,42,.75);padding:1px 8px;border-radius:999px;white-space:nowrap;
-}
-.crop-bar{display:flex;gap:8px;flex-wrap:wrap;align-items:center;margin-top:30px}
-.crop-hint{font-size:11.5px;color:var(--muted);margin-top:8px;line-height:1.7}
-.crop-preview{
-  margin-top:12px;display:none;align-items:center;gap:10px;padding:10px;
-  border:1px solid var(--line-soft);border-radius:11px;background:var(--surface-2);
-}
-.crop-preview img{max-width:110px;max-height:80px;border-radius:8px;object-fit:contain;background:var(--card)}
-.crop-preview .cp-t{font-size:12px;color:var(--muted);line-height:1.7}
-.crop-preview .cp-t b{display:block;color:var(--text);font-size:12.5px;margin-bottom:2px}
+/* ---------- AI 菜品识别 / 份量估算卡片（与整站视觉一致） ---------- */
+.ai-actions{display:flex;gap:10px;flex-wrap:wrap;align-items:stretch;margin-top:14px}
+.ai-actions .btn{flex:2;min-width:170px}
+.ai-actions .btn-sm{flex:1;min-width:116px;padding:12px 16px}
+.ai-refresh{display:flex;justify-content:flex-end;margin-top:8px}
+.dish-head{display:flex;gap:14px;align-items:flex-start;flex-wrap:wrap}
+#dishThumb{width:120px;height:120px;border:1px solid var(--border);border-radius:14px;background:var(--surface-2);flex:none}
+.dish-title{flex:1;min-width:200px}
+#dishName{font-size:21px;font-weight:800;line-height:1.35;letter-spacing:-.01em}
+#dishAlts,#dishDesc,#dishIng{margin-top:6px}
+#dishResult .note{line-height:1.65}
+.dish-foot{display:flex;gap:8px;margin-top:14px;flex-wrap:wrap}
+.dish-foot .btn{flex:1;min-width:210px;padding:12px 16px}
+.dish-foot .btn-sm{flex:0 0 auto;padding:12px 16px}
 
-/* ---------- 营养项快捷填充 ---------- */
-.fill-row{display:flex;gap:7px;flex-wrap:wrap;margin-top:10px}
-.fill-chip{
-  border:1px dashed var(--line-soft);background:var(--surface-2);border-radius:9px;
-  padding:6px 10px;font-family:inherit;font-size:11.5px;color:var(--text);cursor:pointer;transition:.2s;
-  display:inline-flex;align-items:center;gap:5px;line-height:1.4;text-align:left;
-}
-.fill-chip:hover{border-style:solid;border-color:var(--green);color:var(--green);background:var(--green-l)}
-.fill-chip small{color:var(--muted);font-size:10.5px}
-.fill-chip:hover small{color:var(--green)}
+/* 热量估算块 */
+#dishCal{margin-top:16px;padding-top:14px;border-top:1px solid var(--line-soft)}
+.dc-head{display:flex;align-items:baseline;gap:14px;flex-wrap:wrap}
+.dc-kcal b{font-size:28px;font-weight:800;letter-spacing:-.02em;color:var(--green-d);font-variant-numeric:tabular-nums}
+.dc-kcal span{font-size:12px;color:var(--muted);margin-left:5px}
+.dc-mac{display:flex;gap:6px;flex-wrap:wrap}
+.dc-mac i{font-style:normal;font-size:12px;padding:4px 9px;border-radius:999px;font-variant-numeric:tabular-nums}
+.dc-mac .mp{background:var(--p-bg);color:var(--blue)}
+.dc-mac .mc{background:var(--c-bg);color:var(--orange)}
+.dc-mac .mf{background:var(--f-bg);color:var(--brown)}
+.dc-rows{margin-top:12px;border:1px solid var(--line-soft);border-radius:14px;overflow:hidden;background:var(--surface-2)}
+.dc-row{display:flex;align-items:center;gap:10px;padding:10px 13px;font-size:13px;border-top:1px solid var(--line-soft)}
+.dc-row:first-child{border-top:0}
+.dc-row .n{flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.dc-row .g{color:var(--muted);font-variant-numeric:tabular-nums;flex:none}
+.dc-row .k{font-weight:600;font-variant-numeric:tabular-nums;flex:none;min-width:64px;text-align:right}
+.dc-row .via{font-size:11px;color:var(--muted);margin-left:6px}
+.dc-row.miss{opacity:.72}
+.dc-row.miss .k{font-weight:400}
+.dc-row.total{border-top:1px solid var(--border);background:var(--card);font-weight:700}
+.dc-row.total .k{color:var(--green-d)}
+#dishCalNote{margin-top:10px;font-size:12px}
 
-/* ---------- OCR 失败引导 ---------- */
-.ocr-fail{
-  margin-top:14px;padding:14px;border-radius:13px;border:1px solid var(--border);
-  background:var(--surface-2);display:none;
-}
-.ocr-fail.show{display:block;animation:failIn .28s ease both}
-@keyframes failIn{from{opacity:0;transform:translateY(-6px)}to{opacity:1;transform:none}}
-.of-title{font-size:13px;font-weight:700;color:var(--text);display:flex;align-items:center;gap:7px;margin-bottom:7px}
-.of-reason{font-size:12.5px;color:var(--muted);line-height:1.8;margin-bottom:11px}
-.of-reason b{color:var(--text)}
-.of-ways{display:grid;gap:8px}
-.of-way{
-  display:flex;gap:9px;align-items:flex-start;padding:10px 11px;border-radius:11px;
-  border:1px solid var(--line-soft);background:var(--card);font-size:12.5px;color:var(--muted);line-height:1.7;
-}
-.of-way .ow-ico{font-size:15px;flex:none;line-height:1.3}
-.of-way b{color:var(--text);font-weight:600}
-.of-way .ow-btn{
-  margin-left:auto;flex:none;align-self:center;border:1px solid var(--green);background:var(--green-l);
-  color:var(--green);border-radius:8px;padding:5px 11px;font-family:inherit;font-size:11.5px;
-  font-weight:600;cursor:pointer;transition:.2s;white-space:nowrap;
-}
-.of-way .ow-btn:hover{background:var(--green);color:#fff}
-.of-way.done{border-color:var(--green);background:var(--green-l)}
+/* 未匹配食材：AI 补查 */
+.dc-ai-btn{flex:none;font-size:12px;padding:5px 11px;border-radius:999px;border:1px solid var(--border);background:var(--card);color:var(--green-d);cursor:pointer;white-space:nowrap;font-family:inherit;transition:background .15s,border-color .15s}
+.dc-ai-btn:hover:not(:disabled){background:var(--green-l);border-color:var(--green)}
+.dc-ai-btn:disabled{opacity:.6;cursor:default}
+.dc-ai-panel{margin:0;padding:11px 13px;background:var(--card);border-top:1px solid var(--line-soft);font-size:12.5px;line-height:1.65}
+.dc-ai-panel.loading{color:var(--muted)}
+.dc-ai-panel.err{color:var(--red)}
+.dc-ai-head{display:flex;align-items:baseline;gap:8px;flex-wrap:wrap;font-weight:600}
+.dc-ai-head .dc-ai-kcal{margin-left:auto;color:var(--green-d);font-variant-numeric:tabular-nums;font-weight:700}
+.dc-ai-mac{color:var(--muted);font-variant-numeric:tabular-nums;margin-top:2px}
+.dc-ai-note{color:var(--muted);margin-top:3px}
+.dc-ai-warn{color:var(--orange);margin-top:4px}
+.dc-ai-act{display:flex;gap:8px;flex-wrap:wrap;margin-top:9px}
+.dc-ai-act .btn-sm{font-size:12px;padding:7px 12px}
+.dc-ai-act .btn-sm.on{border-color:var(--green);color:var(--green-d);background:var(--green-l)}
+.dc-ai-tip{color:var(--muted);font-size:11.5px;margin-top:7px}
+.dc-ai-all{margin-top:10px;display:flex;justify-content:flex-end}
+.dc-ai-all-btn{font-size:12.5px;padding:8px 14px}
+.dc-undo{font-size:11px;color:var(--muted);background:none;border:0;padding:0 0 0 6px;cursor:pointer;text-decoration:underline;font-family:inherit;white-space:nowrap}
+.dc-undo:hover{color:var(--red)}
+.via.src-custom{color:var(--green-d);font-weight:600}
+.via.src-ai{color:var(--orange);font-weight:600}
 
 /* ---------- 表单分组 ---------- */
 .form-group{margin-bottom:18px}
@@ -1070,7 +1060,6 @@ html.intro-done .wrap{animation:contentIn .6s ease both}
   .btn{min-height:44px}
   .btn-sm{min-height:38px;padding:9px 13px}
   .qchip{padding:8px 14px;font-size:13px}
-  .fill-chip{padding:8px 11px;font-size:12px}
   .icon-btn,.edit-row-btn{width:36px;height:36px}
   .tabs button{min-height:44px}
   .seg button,.seg-switch button{min-height:38px}
@@ -1274,7 +1263,7 @@ html.intro-done .wrap{animation:contentIn .6s ease both}
     <ol class="stepper" id="ocrSteps">
       <li class="step active" data-step="1"><span class="dot"><span>1</span></span><span class="lbl">上传图片</span></li>
       <li class="step-line"></li>
-      <li class="step" data-step="2"><span class="dot"><span>2</span></span><span class="lbl">识别解析</span></li>
+      <li class="step" data-step="2"><span class="dot"><span>2</span></span><span class="lbl">AI 识别</span></li>
       <li class="step-line"></li>
       <li class="step" data-step="3"><span class="dot"><span>3</span></span><span class="lbl">校对入库</span></li>
     </ol>
@@ -1290,91 +1279,59 @@ html.intro-done .wrap{animation:contentIn .6s ease both}
         <div class="dz-hint">支持 JPG / PNG，最大 8MB；手机可直接调用相机拍照</div>
       </div>
       <input type="file" id="photo" accept="image/*" capture="environment" onchange="loadPhoto(event)" class="sr-only">
-
-      <!-- 裁剪区：把营养成分表那一框拖出来，识别更准 -->
-      <div class="crop-wrap" id="cropWrap">
-        <div class="crop-stage" id="cropStage">
-          <canvas id="cropCanvas"></canvas>
-          <div class="crop-box" id="cropBox">
-            <span class="crop-h h-nw"></span><span class="crop-h h-ne"></span>
-            <span class="crop-h h-sw"></span><span class="crop-h h-se"></span>
-            <span class="crop-size" id="cropSize">拖动方框框住营养成分表</span>
-          </div>
-        </div>
-        <div class="crop-bar">
-          <button class="btn-sm" type="button" onclick="cropReset()">重置选框</button>
-          <button class="btn-sm" type="button" onclick="cropFull()">用整张图</button>
-          <button class="btn" type="button" onclick="applyCrop()">应用裁剪</button>
-        </div>
-        <div class="crop-hint">💡 只把「营养成分表」那一块框住再识别，速度更快、结果更准。拖动方框移动，拖四角缩放。</div>
-      </div>
-
       <div id="previewBox" style="margin-top:14px;display:none">
-        <canvas id="cv"></canvas>
-      </div>
-
-      <!-- 裁剪结果预览 -->
-      <div class="crop-preview" id="cropPreview">
-        <img id="cropPreviewImg" alt="裁剪结果预览">
-        <div class="cp-t"><b>裁剪结果</b><span id="cropPreviewTip"></span></div>
+        <canvas id="cv" width="0" height="0"></canvas>
       </div>
       <div class="row" style="margin-top:14px">
-        <button class="btn" onclick="startRecognize()" id="ocrBtn">开始识别</button>
+        <button class="btn" onclick="startRecognize()" id="ocrBtn">AI 识别营养成分表</button>
       </div>
-      <div class="tag-cards">
-        <button class="tag-card on" type="button" id="engLocal" onclick="setEngine('local')">
-          <span class="tc-ico">⚡</span>
-          <span class="tc-main"><b>本地 OCR</b><small>离线免费 · 首次需下载中文模型</small></span>
-          <span class="tc-check">✓</span>
-        </button>
-        <button class="tag-card" type="button" id="engAI" onclick="setEngine('ai')">
-          <span class="tc-ico">✨</span>
-          <span class="tc-main"><b>智谱视觉大模型</b><small>复杂 / 倾斜标签更准</small></span>
-          <span class="tc-check">✓</span>
-        </button>
+      <div class="row" style="margin-top:14px">
+        <label>视觉模型（只列出支持图片输入的模型）</label>
+        <select id="ocrModel" onchange="saveOcrModel()"><option value="">加载中…</option></select>
       </div>
-      <div id="aiCfg" class="hidden" style="margin-top:16px;border-top:1px solid var(--line-soft);padding-top:16px">
-        <div class="row"><label>接口地址（本地代理 / 你自己的后端）</label>
-          <input type="text" id="proxyUrl" value="http://127.0.0.1:8787" placeholder="如 http://127.0.0.1:8787 或 https://api.yourdomain.com" onchange="saveCfg()"></div>
-        <div class="row" style="display:flex;gap:8px;flex-wrap:wrap">
-          <button class="btn-sm" onclick="fillPreset('local')">一键填入本地代理</button>
-        </div>
-        <div class="row"><label>识别接口路径（后端暴露的路由）</label>
-          <input type="text" id="apiPath" value="/vision" placeholder="/vision" onchange="saveCfg()"></div>
-        <div class="row"><label>后端鉴权 Token（可选：你的后端若要求登录态，填这里，会以 Authorization: Bearer 发送）</label>
-          <input type="password" id="authToken" placeholder="可留空" onchange="saveCfg()"></div>
-        <div class="row"><label>智谱 API Key（后端已配置时可留空；前端填写仅存本机浏览器）</label>
-          <input type="password" id="zhipuKey" placeholder="可留空：由后端从环境变量注入" onchange="saveCfg()"></div>
-        <div class="row"><label>模型</label>
-          <select id="modelSel" onchange="onModelChange()">
-            <optgroup label="免费（推荐先用这些）">
-              <option value="glm-4.6v-flash">glm-4.6v-flash · 免费 · 通用视觉，默认推荐</option>
-              <option value="glm-4.1v-thinking-flash">glm-4.1v-thinking-flash · 免费 · 带推理，复杂表格更准（慢一点）</option>
-              <option value="glm-4v-flash">glm-4v-flash · 免费 · 老版，上下文仅 4K</option>
-            </optgroup>
-            <optgroup label="OCR 专用（表格识别最强，极便宜）">
-              <option value="glm-ocr">glm-ocr · 0.2 元/百万 token · 约 1 元 2000 张图</option>
-            </optgroup>
-            <optgroup label="高性能（付费，按量计费）">
-              <option value="glm-4.6v-flashx">glm-4.6v-flashx · 0.15 / 1.5 元 · 轻量增强版</option>
-              <option value="glm-4.6v">glm-4.6v · 1 / 3 元 · 106B 旗舰视觉</option>
-              <option value="glm-5.3-flash">glm-5.3-flash · 0.8 / 2.8 元 · 原生多模态（图/视频/文件）</option>
-              <option value="glm-4.5v">glm-4.5v · 2 / 6 元</option>
-              <option value="glm-4v-plus-0111">glm-4v-plus-0111 · 4 / 4 元</option>
-              <option value="glm-5v-turbo">glm-5v-turbo · 5 / 22 元 · 多模态 Coding 基座，200K</option>
-            </optgroup>
-            <option value="__custom">自定义模型名…</option>
-          </select>
-        </div>
-        <div class="row hidden" id="customModelRow">
-          <input type="text" id="modelName" placeholder="输入模型 ID，如 glm-4.1v-thinking-flashx" onchange="saveCfg()">
-        </div>
-        <div class="note" id="modelTip"></div>
-        <button class="btn-sm" onclick="testConn()" id="testBtn" style="width:100%;padding:10px">测试连接（验证代理 + Key + 模型）</button>
-        <div class="note"><b>使用方式</b>：① 双击 <b>start-proxy.bat</b>；② 浏览器打开 <b>http://127.0.0.1:8787/</b>；③ 填 Key 后识别。
-        <br>同一个智谱 Key 可调用下列所有模型；免费模型无 token 上限但并发仅 1，别连点。若某模型报 1211/1212（模型不存在或不支持该调用方式），换回 <code>glm-4.6v-flash</code> 即可。</div>
+      <div class="ai-refresh"><button class="btn-sm" type="button" onclick="loadOcrModels()">刷新模型列表</button></div>
+      <div class="note" id="ocrStatus">上传标签照片后点上方按钮，AI 会直接读出能量、蛋白质、脂肪、碳水化合物、钠并填进下面的表单；标注「每份」的会自动换算成每 100g。识别结果仍需你核对后再保存。</div>
+    </div>
+
+    <div class="card">
+      <h2>AI 菜品识别 <span class="h2-count">可选 · 用上方同一张照片</span></h2>
+      <div class="row">
+        <label>视觉模型（只列出支持图片输入的模型）</label>
+        <select id="dishModel" onchange="saveDishModel()"><option value="">加载中…</option></select>
       </div>
-      <div class="note" id="ocrStatus">本地 OCR 首次使用需从 CDN 下载中文识别模型（约 20MB，需联网），之后浏览器会缓存。手机可直接调用相机拍照。</div>
+      <div class="ai-actions">
+        <button class="btn" id="dishBtn" type="button" onclick="recognizeDish()">AI 识别这道菜</button>
+        <button class="btn-sm" type="button" onclick="recognizeDish()">重新识别</button>
+      </div>
+      <div class="ai-refresh"><button class="btn-sm" type="button" onclick="loadDishModels()">刷新模型列表</button></div>
+      <div id="dishLoading" class="spinner hidden">AI 正在看图识别并估算份量，通常需要几秒…</div>
+      <div id="dishErr" class="note hidden" style="color:var(--red)"></div>
+      <div id="dishResult" class="hidden" style="margin-top:14px">
+        <div class="dish-head">
+          <canvas id="dishThumb" width="120" height="120"></canvas>
+          <div class="dish-title">
+            <div id="dishName"></div>
+            <div id="dishUncertain" class="note"></div>
+          </div>
+        </div>
+        <div id="dishAlts" class="note"></div>
+        <div id="dishDesc" class="note"></div>
+        <div id="dishIng" class="note"></div>
+        <div id="dishCal" class="hidden">
+          <div class="dc-head">
+            <div class="dc-kcal"><b id="dishKcal">0</b><span>千卡 · 粗略估算</span></div>
+            <div class="dc-mac" id="dishMacros"></div>
+          </div>
+          <div id="dishIngRows" class="dc-rows"></div>
+          <div id="dishAiAll" class="dc-ai-all"></div>
+          <div class="note" id="dishCalNote"></div>
+        </div>
+        <div class="dish-foot">
+          <button class="btn" id="dishAddBtn" type="button" disabled onclick="addDishToLog()">把这盘菜加入今日记录</button>
+          <button class="btn-sm" type="button" onclick="fillDishName()">用菜名去食物库搜索</button>
+        </div>
+      </div>
+      <div class="note">说明：点击识别后，图片会在本地压缩到最长边 1024 像素，再随本次请求发送给所选的视觉大模型，由模型识别菜品并目测各食材克数；热量按页面内置食物库每 100g 数据换算，属于粗略估算。本地食物库没有的食材，可用「AI 查热量」让模型补一个每 100g 估值，再一键存入你自己的食物库（AI 估值不是权威检测数据）。图片不会上传到你的数据库，前端也不保存任何服务端密钥。</div>
     </div>
 
     <div class="card">
@@ -1386,29 +1343,6 @@ html.intro-done .wrap{animation:contentIn .6s ease both}
       <div class="row" style="display:flex;gap:8px;flex-wrap:wrap">
         <button class="btn-sm" onclick="parseText()">从文字中解析</button>
         <button class="btn-sm" onclick="clearForm()">清空表单</button>
-      </div>
-
-      <!-- 识别失败时的友好引导 -->
-      <div class="ocr-fail" id="ocrFail">
-        <div class="of-title"><span>😕</span><span id="ocrFailTitle">这次没认出来</span></div>
-        <div class="of-reason" id="ocrFailReason"></div>
-        <div class="of-ways">
-          <div class="of-way" id="ofWay1">
-            <span class="ow-ico">✂️</span>
-            <span><b>只框住营养成分表</b><br>整张图里杂物太多容易认错 —— 用上方裁剪框选中表格那一块，再点「开始识别」。</span>
-            <button class="ow-btn" type="button" onclick="focusCrop()">去裁剪</button>
-          </div>
-          <div class="of-way" id="ofWay2">
-            <span class="ow-ico">🌤</span>
-            <span><b>换个角度重拍</b><br>避免反光、阴影和倾斜，正对表格、让光线均匀会明显提高识别率。</span>
-            <button class="ow-btn" type="button" onclick="rePickPhoto()">重新上传</button>
-          </div>
-          <div class="of-way" id="ofWay3">
-            <span class="ow-ico">✍️</span>
-            <span><b>手动填一下</b><br>营养成分表上的数字通常就几行，直接照着填进下方表单一样能存进食物库。</span>
-            <button class="ow-btn" type="button" onclick="focusManual()">去填写</button>
-          </div>
-        </div>
       </div>
     </div>
 
@@ -1433,7 +1367,6 @@ html.intro-done .wrap{animation:contentIn .6s ease both}
       </div>
       <div class="form-group">
         <div class="fg-title">三大营养素（g / 每100g）</div>
-        <div class="fill-row" id="fillRow"></div>
         <div class="grid3">
           <div class="row">
             <label><svg class="li" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" aria-hidden="true"><ellipse cx="12" cy="12" rx="6" ry="8"></ellipse></svg>蛋白质</label>
@@ -1472,6 +1405,11 @@ html.intro-done .wrap{animation:contentIn .6s ease both}
 
     <div class="card">
       <h2>我的食物库 · 自建条目 <span class="h2-count" id="cfCount"></span></h2>
+      <div class="cf-sync" id="cfSyncBar">
+        <span class="cf-dot"></span>
+        <span class="cf-sync-text" id="cfSyncText">正在读取云端食物库…</span>
+        <button class="btn-sm cf-sync-btn" id="cfSyncBtn" type="button" onclick="syncCustom(true)">同步云端</button>
+      </div>
       <div id="cfList"><div class="empty">还没有自建食物，拍照识别后即可存入</div></div>
       <div style="display:flex;gap:8px;margin-top:14px;flex-wrap:wrap">
         <button class="btn-sm" onclick="exportFoods()">导出 JSON（备份）</button>
@@ -1479,7 +1417,7 @@ html.intro-done .wrap{animation:contentIn .6s ease both}
         <input type="file" id="impFile" accept=".json" style="display:none" onchange="importFoods(event)">
         <button class="btn-sm" onclick="exportCsv()">导出 CSV（Excel 可打开）</button>
       </div>
-      <div class="note">自建条目保存在你的云端账号，换设备登录同一邮箱即可看到；也可以导出 JSON / CSV 做本地备份。</div>
+      <div class="note">自建条目保存在你的云端账号，换设备登录同一邮箱即可看到。页面会自动与云端同步（切到本页、窗口重新获得焦点、每 60 秒检查一次），也可以点上方「同步云端」立即拉取；导出 JSON / CSV 可做本地备份。</div>
     </div>
   </div>
 
@@ -2579,13 +2517,6 @@ async function loadLogs() {
   if (r.error) throw r.error;
   state.logs = r.data || [];
 }
-async function loadCustom() {
-  var r = await cloud.database.from("custom_foods").select("*")
-    .order("created_at", { ascending: false });
-  if (r.error) throw r.error;
-  state.custom = r.data || [];
-  await ensureUrls(state.custom.map(function (o) { return o.image_path; }).filter(Boolean));
-}
 /* ---- 历史身体数据（body_metrics） ---- */
 async function loadBodyMetrics(){
   try{
@@ -2650,6 +2581,119 @@ async function saveTodayMetric(){
   }finally{
     if(btn){ btn.disabled=false; btn.textContent="保存今日身体数据"; }
   }
+}
+/* ================= 我的食物库 ↔ 云端库同步 ================= */
+var CF_SYNC_GAP = 20000;                 /* 自动同步的最小间隔（毫秒） */
+var cfSyncAt = 0;                        /* 上次成功同步的时间戳 */
+var cfSyncBusy = null;                   /* 进行中的同步 Promise，防止并发重复拉取 */
+var cfLastSync = { add: 0, del: 0, total: 0 };
+
+function cfClock(ts){
+  var d = new Date(ts || Date.now());
+  if(isNaN(d.getTime())) return "";
+  return ("0" + d.getHours()).slice(-2) + ":" + ("0" + d.getMinutes()).slice(-2);
+}
+function cfStatus(kind, text){
+  var bar = document.getElementById("cfSyncBar");
+  var tx = document.getElementById("cfSyncText");
+  var btn = document.getElementById("cfSyncBtn");
+  if(tx) tx.textContent = text;
+  if(bar){
+    bar.classList.remove("ok", "err", "busy");
+    if(kind) bar.classList.add(kind);
+  }
+  if(btn){
+    if(kind === "busy"){ btn.disabled = true; btn.textContent = "同步中…"; }
+    else { btn.disabled = false; btn.textContent = "同步云端"; }
+  }
+}
+/* 本页刚上传 / 删除了条目，先标记为已同步，避免紧接着重复拉取 */
+function cfUploaded(n){
+  cfSyncAt = Date.now();
+  var tail = " · " + cfClock(cfSyncAt);
+  cfStatus("ok", n > 0
+    ? "已上传 " + n + " 条到云端 · 共 " + state.custom.length + " 条" + tail
+    : "云端已更新 · 共 " + state.custom.length + " 条" + tail);
+}
+async function loadCustom(){
+  if(!state.user) throw new Error("未登录");
+  var before = state.custom || [];
+  var oldIds = {};
+  before.forEach(function(o){ oldIds[String(o.id)] = 1; });
+  var first = cfSyncAt === 0;              /* 登录后首次加载不显示增量 */
+  cfStatus("busy", "正在与云端同步…");
+  var r = await cloud.database.from("custom_foods").select("*")
+    .order("created_at", { ascending: false });
+  if(r.error){
+    cfStatus("err", "同步失败 · 点击右侧按钮重试");
+    throw r.error;
+  }
+  var rows = r.data || [];
+  var newIds = {}, add = 0, del = 0;
+  rows.forEach(function(o){
+    newIds[String(o.id)] = 1;
+    if(!oldIds[String(o.id)]) add++;
+  });
+  before.forEach(function(o){ if(!newIds[String(o.id)]) del++; });
+  state.custom = rows;
+  try{
+    await ensureUrls(rows.map(function(o){ return o.image_path; }).filter(Boolean));
+  }catch(e){ /* 照片签名失败不影响条目本身 */ }
+  cfSyncAt = Date.now();
+  cfLastSync = { add: add, del: del, total: rows.length };
+  var delta = "";
+  if(!first && (add || del)){
+    delta = "（";
+    if(add) delta += "+" + add + " 条新增";
+    if(add && del) delta += " / ";
+    if(del) delta += "-" + del + " 条移除";
+    delta += "）";
+  }
+  cfStatus("ok", "已与云端同步 · " + rows.length + " 条" + delta + " · " + cfClock(cfSyncAt));
+  return cfLastSync;
+}
+function syncCustom(manual){
+  if(cfSyncBusy) return cfSyncBusy;
+  if(!state.user){
+    cfStatus("", "未登录 · 登录后可同步云端食物库");
+    if(manual) toast("登录后才能同步云端食物库", "err");
+    return Promise.resolve(null);
+  }
+  cfSyncBusy = (async function(){
+    try{
+      var d = await loadCustom();
+      renderCustom();
+      if(manual){
+        var extra = (d.add || d.del)
+          ? "（新增 " + d.add + " 条 · 移除 " + d.del + " 条）"
+          : "（已是最新）";
+        toast("云端食物库已同步：" + d.total + " 条" + extra, "ok");
+      }
+      return d;
+    }catch(e){
+      var msg = errText(e, "请检查网络后重试");
+      cfStatus("err", "同步失败：" + msg);
+      if(manual) toast("同步失败：" + msg, "err");
+      return null;
+    }finally{
+      cfSyncBusy = null;
+    }
+  })();
+  return cfSyncBusy;
+}
+/* 自动同步：只在「拍照录入库」页可见、且距上次同步超过间隔时触发 */
+function cfAutoSync(){
+  if(!state.user || cfSyncBusy) return;
+  var page = document.getElementById("pageScan");
+  if(!page || page.classList.contains("hidden")) return;
+  if(Date.now() - cfSyncAt < CF_SYNC_GAP) return;
+  syncCustom(false);
+}
+function cfInit(){
+  if(!state.user) cfStatus("", "未登录 · 登录后可同步云端食物库");
+  window.addEventListener("focus", cfAutoSync);
+  document.addEventListener("visibilitychange", function(){ if(!document.hidden) cfAutoSync(); });
+  setInterval(function(){ if(!document.hidden) cfAutoSync(); }, 60000);
 }
 async function uploadPhoto(blob) {
   var path = cloud.storage.userPath(state.user.id, "labels/" + uid() + ".jpg");
@@ -2773,7 +2817,7 @@ function switchTab(t){
     document.getElementById("page"+k.charAt(0).toUpperCase()+k.slice(1)).classList.toggle("hidden", t!==k));
   ["Log","Me","Scan"].forEach(k=>
     document.getElementById("tab"+k).classList.toggle("active", t===k.charAt(0).toLowerCase()+k.slice(1)));
-  if(t==="scan") renderCustom();
+  if(t==="scan"){ renderCustom(); cfAutoSync(); }
   if(t==="me") renderTrends();
 }
 function setSrc(s){
@@ -3139,384 +3183,215 @@ async function saveEdit(){
     btn.disabled=false; btn.textContent="保存修改";
   }
 }
-/* ================= 拍照识别营养成分表 ================= */
-let ocrReady=false, ocrLoading=false, engine="local";
-/* ---- 视觉大模型配置（智谱免费模型） ---- */
-function curModel(){
-  const v=document.getElementById("modelSel").value;
-  return (v==="__custom" ? document.getElementById("modelName").value.trim() : v) || "glm-4.6v-flash";
+/* ================= 拍照识别营养成分表（WorkBuddy 内置 LLM · 视觉模型） =================
+   与「AI 菜品识别」同一套官方能力，不再需要本地 Tesseract 或本地代理/智谱 Key：
+     1) cloud.llm.models.list()                            取目录，只留 supportsImages === true
+     2) cloud.llm.chat.completions.create({stream:true})   多模态消息：text + image_url(data URL)
+   模型直接把营养成分表读成结构化 JSON，前端填进校对表单（每份自动折算每 100g）。
+   图片只在本次请求中发送，不落库；前端不保存任何服务端密钥。 */
+var OCR_MODEL_PREF = ["glm-5v-turbo","glm-5.3-flash","hy4-preview","glm-5.2","hy3","deepseek-v4-flash"];
+var ocrModelErr = null;
+
+function ocrEsc(s){
+  return String(s == null ? "" : s).replace(/[&<>"']/g, function(c){
+    return { "&":"&amp;", "<":"&lt;", ">":"&gt;", '"':"&quot;", "'":"&#39;" }[c];
+  });
 }
-function onModelChange(){
-  const sel=document.getElementById("modelSel");
-  document.getElementById("customModelRow").classList.toggle("hidden", sel.value!=="__custom");
-  const m=curModel();
-  document.getElementById("modelTip").innerHTML = /^glm-ocr/i.test(m)
-    ? "GLM-OCR 是文档/表格专用模型，会输出表格原文，再由本地规则解析成数值 —— 对印刷体营养标签最稳，成本极低。"
-    : (/thinking/i.test(m) ? "带推理模型会先思考再作答，复杂/倾斜/反光的标签更准，但耗时会长一些。" : "");
-  saveCfg();
+function setStatus(t){ document.getElementById("ocrStatus").innerHTML = t; }
+function ocrModelId(){
+  return String((document.getElementById("ocrModel") || {}).value || "").trim();
 }
-function apiBase(){
-  return (document.getElementById("proxyUrl").value.trim()||"http://127.0.0.1:8787").replace(/\/+$/,"");
-}
-function apiPath(){
-  const p=(document.getElementById("apiPath").value.trim()||"/vision");
-  return p.startsWith("/") ? p : "/"+p;
-}
-function buildHeaders(cfg){
-  const h={"Content-Type":"application/json"};
-  const t=(cfg.authToken||"").trim();
-  if(t) h["Authorization"]="Bearer "+t;
-  return h;
-}
-function fillPreset(kind){
-  document.getElementById("proxyUrl").value="http://127.0.0.1:8787";
-  document.getElementById("apiPath").value="/vision";
-  document.getElementById("authToken").value="";
-  saveCfg();
-  setStatus("已填入本地代理配置。请先双击 start-proxy.bat 再测试。");
-}
-function loadCfg(){
-  const c=JSON.parse(localStorage.getItem("calVisionCfg")||"{}");
-  if(c.proxyUrl) document.getElementById("proxyUrl").value=c.proxyUrl;
-  if(c.apiPath) document.getElementById("apiPath").value=c.apiPath;
-  if(c.authToken) document.getElementById("authToken").value=c.authToken;
-  if(c.key) document.getElementById("zhipuKey").value=c.key;
-  if(c.model){
-    const opts=[...document.getElementById("modelSel").options].map(o=>o.value);
-    if(opts.includes(c.model)) document.getElementById("modelSel").value=c.model;
-    else { document.getElementById("modelSel").value="__custom"; document.getElementById("modelName").value=c.model; }
+async function loadOcrModels(){
+  var sel = document.getElementById("ocrModel");
+  if(!sel) return;
+  sel.innerHTML = '<option value="">加载中…</option>';
+  ocrModelErr = null;
+  var vision = [];
+  try{
+    var ms = await dishCloud().llm.models.list();
+    vision = (ms || []).filter(function(m){
+      return m && m.id && m.disabled !== true && m.disabledMultimodal !== true && m.supportsImages === true;
+    });
+  }catch(e){
+    ocrModelErr = e;
+    sel.innerHTML = '<option value="">模型列表加载失败</option>';
+    return;
   }
-  if(c.custom) document.getElementById("modelName").value=c.custom;
-  onModelChange();
+  if(!vision.length){ sel.innerHTML = '<option value="">当前应用没有支持图片输入的模型</option>'; return; }
+  sel.innerHTML = vision.map(function(m){
+    return '<option value="' + ocrEsc(m.id) + '">' + ocrEsc(m.name || m.id) + '（' + ocrEsc(m.id) + '）</option>';
+  }).join("");
+  var saved = null;
+  try{ saved = localStorage.getItem("calOcrModel"); }catch(e){}
+  var pick = (saved && vision.some(function(m){ return m.id === saved; }))
+    ? saved
+    : (OCR_MODEL_PREF.filter(function(id){ return vision.some(function(m){ return m.id === id; }); })[0] || vision[0].id);
+  sel.value = pick;
 }
-function saveCfg(){
-  localStorage.setItem("calVisionCfg", JSON.stringify({
-    proxyUrl:document.getElementById("proxyUrl").value.trim(),
-    apiPath:document.getElementById("apiPath").value.trim(),
-    authToken:document.getElementById("authToken").value.trim(),
-    key:document.getElementById("zhipuKey").value.trim(),
-    model:curModel(),
-    custom:document.getElementById("modelName").value.trim()
-  }));
+function saveOcrModel(){
+  var v = ocrModelId();
+  if(v){ try{ localStorage.setItem("calOcrModel", v); }catch(e){} }
 }
-function setEngine(e){
-  engine=e;
-  document.getElementById("engLocal").classList.toggle("on", e==="local");
-  document.getElementById("engAI").classList.toggle("on", e==="ai");
-  document.getElementById("aiCfg").classList.toggle("hidden", e!=="ai");
-  setStatus(e==="local"
-    ? "本地 OCR 首次使用需从 CDN 下载中文识别模型（约 20MB，需联网），之后浏览器会缓存。"
-    : "需先启动本地代理（双击 start-proxy.bat），并确保已填写 API Key。");
+/* 标签上的小字比菜盘细节更吃分辨率，尽量保留原尺寸，只在过大时压一档 */
+function ocrImageUrl(cv){
+  var url = cv.toDataURL("image/jpeg", 0.92);
+  if(url.length > 1600000) url = ocrDownscale(cv, 1280).toDataURL("image/jpeg", 0.85);
+  return url;
 }
-function startRecognize(){
-  if(!document.getElementById("cv").width){ alert("请先选择或拍摄一张营养成分表照片"); return; }
-  if(engine==="ai") return runVision();
-  return runOCR();
+function ocrDownscale(cv, maxSide){
+  var s = Math.min(1, maxSide / Math.max(cv.width, cv.height));
+  var out = document.createElement("canvas");
+  out.width = Math.max(1, Math.round(cv.width * s));
+  out.height = Math.max(1, Math.round(cv.height * s));
+  var ctx = out.getContext("2d");
+  ctx.fillStyle = "#fff"; ctx.fillRect(0, 0, out.width, out.height);
+  ctx.drawImage(cv, 0, 0, out.width, out.height);
+  return out;
 }
-const VISION_PROMPT = '你是营养标签识别助手。请仔细读取图片中的「营养成分表」，只输出一个 JSON 对象，不要输出任何解释文字、不要代码块标记。格式：'
+const OCR_SYS = "你是严谨的营养成分表识别助手。只输出一个 JSON 对象：不要解释、不要 Markdown 代码块、不要编造表中没有的数值。";
+const VISION_PROMPT = '请仔细读取图片中的「营养成分表」，只输出一个 JSON 对象，不要输出任何解释文字、不要代码块标记。格式：'
   + '{"name":"食品名称，读不到填未知食品","basis":"per100g 或 per_serving","serving_g":数字或null,'
   + '"energy_kj":数字或null,"energy_kcal":数字或null,"protein_g":数字或null,"fat_g":数字或null,"carb_g":数字或null,"sodium_mg":数字或null}'
-  + '。要求：数值只填数字不带单位；读不到的字段填 null；如果表头写的是「每份」「每份(XXg)」或「每份XX克」，basis 填 per_serving 并给出 serving_g 的克数。';
-/* GLM-OCR 是文档解析模型，输出原文更可靠，交给本地规则解析 */
-const OCR_PROMPT = '请完整、逐行输出图片中「营养成分表」的文字内容。要求：保留每一行的项目名称（能量/蛋白质/脂肪/碳水化合物/钠等）'
-  + '及其对应的数值和单位（kJ、千焦、g、mg），标明是「每100克/每100毫升」还是「每份」，不要遗漏，不要改写单位。';
-async function runVision(){
-  saveCfg();
-  const cfg=JSON.parse(localStorage.getItem("calVisionCfg")||"{}");
-  const btn=document.getElementById("ocrBtn"); btn.disabled=true; btn.textContent="识别中…";
-  setStatus("正在调用视觉大模型…");
-  try{
-    const model=curModel();
-    const isOcr=/^glm-ocr/i.test(model);
-    const image=document.getElementById("cv").toDataURL("image/jpeg",0.9);
-    const headers=buildHeaders(cfg);
-    const r=await fetch(apiBase()+apiPath(),{
-      method:"POST", headers:headers,
-      body:JSON.stringify({key:cfg.key, image:image, model:model,
-        prompt: isOcr ? OCR_PROMPT : VISION_PROMPT})
-    });
-    const d=await r.json();
-    if(d.error) throw new Error(d.error);
-    const content=d.choices?.[0]?.message?.content;
-    if(!content) throw new Error("返回内容为空："+JSON.stringify(d).slice(0,200));
-    document.getElementById("ocrText").value=String(content);
-    if(isOcr){ parseText(); setStatus("GLM-OCR 已提取表格原文，已用本地规则解析，请核对数值。"); }
-    else fillFromVision(String(content));
-  }catch(e){
-    const hint = /fetch|network|Failed/i.test(e.message)
-      ? "连不上本地代理。请双击 start-proxy.bat 启动后，再从 http://127.0.0.1:8787/ 打开本页面。"
-      : "";
-    setStatus("调用失败："+e.message+(hint?"　"+hint:""));
-    showOcrFail((hint||"视觉大模型调用失败。")+" 可以改用本地 OCR（不需要联网和 API Key），或者手动填写。", "视觉大模型没调通");
-  }
-  btn.disabled=false; btn.textContent="开始识别";
+  + '。要求：数值只填数字、不带千分位逗号和单位；读不到的字段填 null，不要用 0 顶替；'
+  + '表头写「每 100 克 / 每 100g / 每 100 毫升」时 basis 填 per100g；写「每份 / 每份(XXg) / 每份 XX 克」时 basis 填 per_serving 并给出 serving_g；'
+  + '能量只标 kJ 就填 energy_kj、energy_kcal 留 null；只标 kcal 则反之；钠按 mg 记。';
+function startRecognize(){
+  if(!ocrHasImage()){ alert("请先选择或拍摄一张营养成分表照片"); return; }
+  return runVision();
 }
-/* 一键自检：代理是否活着 → Key 是否有效 → 模型是否可用 */
-async function testConn(){
-  saveCfg();
-  const cfg=JSON.parse(localStorage.getItem("calVisionCfg")||"{}");
-  const btn=document.getElementById("testBtn"); btn.disabled=true;
-  const base=apiBase(), path=apiPath();
-  const px="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mP8z8BQDwAEhQGAhKmMIQAAAABJRU5ErkJggg==";
-  const headers=buildHeaders(cfg);
-  let out=[];
+/* canvas 默认是 300×150，只用宽度判断会漏掉“还没选图”，要连预览区一起看 */
+function ocrHasImage(){
+  var cv = document.getElementById("cv");
+  var box = document.getElementById("previewBox");
+  return !!(cv && cv.width && box && box.style.display !== "none");
+}
+async function ocrChat(model, dataUrl){
+  var callOnce = async function(){
+    var stream = dishCloud().llm.chat.completions.create({
+      model: model,
+      stream: true,
+      temperature: 0.1,
+      messages: [
+        { role: "system", content: OCR_SYS },
+        { role: "user", content: [
+          { type: "text", text: VISION_PROMPT },
+          { type: "image_url", image_url: { url: dataUrl } }
+        ] }
+      ]
+    });
+    var acc = "";
+    for await (const chunk of stream){
+      var d = chunk.choices && chunk.choices[0] && chunk.choices[0].delta;
+      if(d && d.content) acc += d.content;
+    }
+    return acc;
+  };
   try{
-    const h=await fetch(base+"/health",{headers:headers});
-    out.push(h.ok ? "① 后端连通：✅ "+base : "① 后端连通：⚠ 响应 "+h.status);
-  }catch(e){
-    out.push("① 后端连通：⚠ /health 无响应（"+e.message+"），继续尝试识别接口…");
+    return await callOnce();
+  }catch(e1){
+    var code = (e1 && e1.error && e1.error.code) || "";
+    var busy = (e1 && (e1.status === 502 || e1.status === 503 || e1.status === 504)) || /^gateway_/.test(code);
+    if(!busy) throw e1;
+    setStatus("模型服务繁忙，正在自动重试…");
+    await new Promise(function(r){ setTimeout(r, 900); });
+    return await callOnce();
   }
-  const t0=Date.now();
+}
+async function runVision(){
+  var btn = document.getElementById("ocrBtn");
+  var cv = document.getElementById("cv");
+  if(!ocrHasImage()){ alert("请先选择或拍摄一张营养成分表照片"); return; }
+  var model = ocrModelId();
+  if(!model){
+    setStatus(ocrModelErr ? dishErrText(ocrModelErr) : "还没有可用的视觉模型，请点「刷新模型列表」。");
+    return;
+  }
+  btn.disabled = true; btn.textContent = "AI 识别中…";
+  setStatus("AI 正在读取营养成分表，通常需要几秒…");
+  var txtEl = document.getElementById("ocrText");
   try{
-    const m=curModel();
-    const r=await fetch(base+path,{method:"POST",headers:headers,
-      body:JSON.stringify({key:cfg.key,image:px,prompt:"回复两个字：正常",model:m})});
-    const d=await r.json().catch(()=>({error:"响应不是 JSON（HTTP "+r.status+"）"}));
-    if(d.error) out.push("② 识别接口 "+path+"：❌ "+d.error);
-    else out.push("② 识别接口 "+path+"：✅ 正常（模型 "+m+"，"+(Date.now()-t0)+"ms）");
+    var txt = await ocrChat(model, ocrImageUrl(cv));
+    if(!txt || !String(txt).trim()) throw new Error("模型没有返回任何内容");
+    txtEl.value = String(txt).trim();
+    fillFromVision(String(txt));
   }catch(e){
-    out.push("② 识别接口 "+path+"：❌ "+e.message+"　请确认后端已启动且已开启 CORS。");
+    var msg = (e && e.message && /JSON|字段|数值/.test(e.message)) ? e.message : dishErrText(e);
+    /* 前缀与步骤条/成功弹窗的判定约定保持一致，避免解析失败也弹「识别完成」 */
+    txtEl.value = "识别出错：" + msg + "\n\n模型原文：\n" + (txtEl.value || "");
+    setStatus("识别失败：" + msg + "　可改用下方「从文字中解析」手工校正。");
   }
-  out.push("③ 密钥来源："+(cfg.key
-    ? "前端传入"
-    : "后端环境变量，前端未填"));
-  setStatus(out.join("<br>"));
-  btn.disabled=false;
+  btn.disabled = false; btn.textContent = "AI 识别营养成分表";
 }
 function fillFromVision(txt){
-  let obj=null;
+  var obj = null;
   try{
-    const s=txt.indexOf("{"), e=txt.lastIndexOf("}");
-    obj=JSON.parse(txt.slice(s, e+1));
-  }catch(err){ setStatus("模型返回的不是合法 JSON，请看下方原文手动改："); return; }
-  const num=v=> (v===null||v===undefined||v==="")?null:parseFloat(v);
-  let kj=num(obj.energy_kj), kcal=num(obj.energy_kcal);
-  let p=num(obj.protein_g), f=num(obj.fat_g), c=num(obj.carb_g), na=num(obj.sodium_mg);
-  let factor=1, conv="";
-  if(obj.basis==="per_serving" && num(obj.serving_g)){
-    factor=100/num(obj.serving_g);
-    conv="　已按「每份 "+num(obj.serving_g)+"g」换算为每100g";
+    var a = txt.indexOf("{"), b = txt.lastIndexOf("}");
+    if(a < 0 || b <= a) throw new Error("没有 JSON 结构");
+    obj = JSON.parse(txt.slice(a, b + 1));
+  }catch(err){
+    throw new Error("模型返回的不是合法 JSON（" + err.message + "）");
   }
-  const mul=v=> v==null?null:Math.round(v*factor*10)/10;
-  kj=mul(kj); kcal=mul(kcal); p=mul(p); f=mul(f); c=mul(c); na=mul(na);
-  if(obj.name && obj.name!=="未知食品") document.getElementById("fName").value=obj.name;
-  if(kj!=null){ document.getElementById("fKj").value=Math.round(kj); document.getElementById("fKcal").value=Math.round(kj/4.184*10)/10; }
-  else if(kcal!=null) document.getElementById("fKcal").value=Math.round(kcal);
-  const set=(id,v)=>{ if(v!=null) document.getElementById(id).value=v; };
-  set("fP",p); set("fF",f); set("fC",c); set("fNa",na);
-  const miss=[["蛋白质",p],["脂肪",f],["碳水化合物",c],["能量",kj!=null||kcal!=null?1:null]].filter(x=>x[1]==null).map(x=>x[0]);
+  if(!obj || typeof obj !== "object") throw new Error("模型返回的不是 JSON 对象");
+  var num = function(v){ return (v === null || v === undefined || v === "") ? null : parseFloat(v); };
+  var kj = num(obj.energy_kj), kcal = num(obj.energy_kcal);
+  var p = num(obj.protein_g), f = num(obj.fat_g), c = num(obj.carb_g), na = num(obj.sodium_mg);
+  if(!isFinite(kj)) kj = null;
+  if(!isFinite(kcal)) kcal = null;
+  if(!isFinite(p)) p = null;
+  if(!isFinite(f)) f = null;
+  if(!isFinite(c)) c = null;
+  if(!isFinite(na)) na = null;
+  var sg = num(obj.serving_g);
+  var factor = 1, conv = "";
+  if(obj.basis === "per_serving"){
+    if(isFinite(sg) && sg > 0){
+      factor = 100 / sg;
+      conv = "　已按「每份 " + sg + "g」折算为每 100g";
+    }else{
+      conv = "　⚠ 标签是「每份」但没读出每份克数，数值仍是每份，请手动换算";
+    }
+  }
+  var mul = function(v){ return v == null ? null : Math.round(v * factor * 10) / 10; };
+  kj = mul(kj); kcal = mul(kcal); p = mul(p); f = mul(f); c = mul(c); na = mul(na);
+  if(obj.name && obj.name !== "未知食品") document.getElementById("fName").value = String(obj.name).trim();
+  if(kj != null){
+    document.getElementById("fKj").value = Math.round(kj);
+    document.getElementById("fKcal").value = Math.round(kj / 4.184 * 10) / 10;
+  }else if(kcal != null){
+    document.getElementById("fKcal").value = Math.round(kcal);
+    document.getElementById("fKj").value = Math.round(kcal * 4.184);
+  }
+  var set = function(id, v){ if(v != null) document.getElementById(id).value = v; };
+  set("fP", p); set("fF", f); set("fC", c); set("fNa", na);
+  var miss = [["蛋白质", p], ["脂肪", f], ["碳水化合物", c], ["能量", (kj != null || kcal != null) ? 1 : null]]
+    .filter(function(x){ return x[1] == null; }).map(function(x){ return x[0]; });
+  var got = [kj != null || kcal != null, p != null, f != null, c != null].filter(Boolean).length;
+  if(!got) throw new Error("模型没有读出任何营养数值");
   document.getElementById("parseTip").innerHTML = miss.length
-    ? "⚠ 未识别到："+miss.join("、")+"。请手动补填。"+conv
-    : "视觉识别完成，请核对后保存。"+conv;
-  setStatus("识别完成，请核对数值。");
+    ? "⚠ 未识别到：" + miss.join("、") + "。请手动补填。" + conv
+    : "AI 识别完成，请核对后保存。" + conv;
+  setStatus("识别完成，请核对数值（AI 读取，可能有误差）。" + conv);
   switchTab("scan");
 }
-function loadScript(url){
-  return new Promise((res,rej)=>{ const s=document.createElement("script"); s.src=url; s.onload=res; s.onerror=rej; document.head.appendChild(s); });
-}
-async function ensureTesseract(){
-  if(ocrReady) return true;
-  if(ocrLoading){ alert("模型正在加载中，请稍候"); return false; }
-  ocrLoading=true;
-  const cdns=[
-    "https://cdn.jsdelivr.net/npm/tesseract.js@5.1.1/dist/tesseract.min.js",
-    "https://unpkg.com/tesseract.js@5.1.1/dist/tesseract.min.js",
-    "https://cdnjs.cloudflare.com/ajax/libs/tesseract.js/5.1.1/tesseract.min.js"
-  ];
-  for(const u of cdns){
-    try{
-      setStatus("正在加载识别引擎…（"+u.split("/")[2]+"）");
-      await loadScript(u);
-      if(window.Tesseract){ ocrReady=true; ocrLoading=false; return true; }
-    }catch(e){ /* 换下一个 CDN */ }
-  }
-  ocrLoading=false;
-  setStatus("识别引擎加载失败，请检查网络；你也可以直接把营养成分表的文字粘贴到下方文本框后点「从文字中解析」。");
-  return false;
-}
-/* ---- OCR 失败时的友好引导 ---- */
-function hideOcrFail(){ var f=document.getElementById("ocrFail"); if(f) f.classList.remove("show"); }
-function showOcrFail(reason, title){
-  var f=document.getElementById("ocrFail");
-  if(!f) return;
-  document.getElementById("ocrFailTitle").textContent = title || "这次没认出来";
-  document.getElementById("ocrFailReason").innerHTML = reason || "识别结果里没有找到营养成分表的数字。";
-  f.classList.add("show");
-  try{ f.scrollIntoView({behavior:"smooth", block:"center"}); }catch(e){}
-}
-function focusCrop(){
-  var w=document.getElementById("cropWrap");
-  if(w){ w.scrollIntoView({behavior:"smooth", block:"center"}); w.style.outline="2px solid var(--green)"; setTimeout(function(){ w.style.outline=""; },1600); }
-}
-function rePickPhoto(){
-  var p=document.getElementById("photo");
-  if(p){ p.value=""; p.click(); }
-}
-function focusManual(){
-  var t=document.getElementById("ocrText");
-  if(t){ t.scrollIntoView({behavior:"smooth", block:"center"}); t.focus(); }
-}
-function setStatus(t){ document.getElementById("ocrStatus").innerHTML=t; }
-/* ---- 图片裁剪 ---- */
-var cropState={ img:null, sx:0, sy:0, sw:0, sh:0, dragging:null, sx0:0, sy0:0, ox0:0, oy0:0 };
 function loadPhoto(e){
-  const file=e.target.files[0]; if(!file) return;
+  const file = e.target.files[0]; if(!file) return;
   if(!/^image\//.test(file.type)){ setStatus("请选择图片文件（jpg / png）。"); return; }
-  if(file.size>8*1024*1024){ setStatus("图片超过 8MB，请换一张更小的。"); return; }
-  hideOcrFail();
-  const img=new Image();
-  img.onload=()=>{
-    const maxSide=1400;
-    const scale=Math.min(1, maxSide/Math.max(img.width,img.height));
-    const w=Math.round(img.width*scale), h=Math.round(img.height*scale);
-    /* 原图缩放到可管理尺寸 */
-    const src=document.createElement("canvas");
-    src.width=w; src.height=h;
-    src.getContext("2d").drawImage(img,0,0,w,h);
-    cropState.img=src;
-    const cc=document.getElementById("cropCanvas");
-    cc.width=w; cc.height=h;
-    cc.getContext("2d").drawImage(src,0,0);
-    document.getElementById("cropWrap").style.display="block";
-    /* 默认框住画面中央 80% 区域 */
-    cropState.sx=Math.round(w*0.1); cropState.sy=Math.round(h*0.1);
-    cropState.sw=Math.round(w*0.8); cropState.sh=Math.round(h*0.8);
-    syncCropBox();
-    /* 同步到识别用画布（未裁剪时 = 整图） */
-    const cv=document.getElementById("cv");
-    cv.width=w; cv.height=h;
-    cv.getContext("2d").drawImage(src,0,0);
-    if(cv.toBlob) cv.toBlob(b=>{ state.photoBlob = b || file; }, "image/jpeg", 0.85);
+  if(file.size > 8 * 1024 * 1024){ setStatus("图片超过 8MB，请换一张更小的。"); return; }
+  const img = new Image();
+  img.onload = () => {
+    const cv = document.getElementById("cv");
+    const scale = Math.min(1, 1400 / Math.max(img.width, img.height));
+    cv.width = Math.round(img.width * scale); cv.height = Math.round(img.height * scale);
+    const ctx = cv.getContext("2d");
+    ctx.drawImage(img, 0, 0, cv.width, cv.height); /* 保持原图，不做灰度/二值化处理 */
+    if(cv.toBlob) cv.toBlob(b => { state.photoBlob = b || file; }, "image/jpeg", 0.85);
     else state.photoBlob = file;
-    document.getElementById("previewBox").style.display="none";
-    document.getElementById("cropPreview").style.display="none";
-    setStatus("图片已就绪。可拖动方框只框住营养成分表，确认后点「开始识别」。照片会在「存入我的食物库」时上传到你的云端空间。");
+    document.getElementById("previewBox").style.display = "block";
+    setStatus("图片已就绪，点「AI 识别营养成分表」。照片会在「存入我的食物库」时上传到你的云端空间。");
   };
-  img.onerror=function(){ setStatus("这张图片打不开，请换一张试试。"); };
-  img.src=URL.createObjectURL(file);
+  img.src = URL.createObjectURL(file);
 }
-function syncCropBox(){
-  var st=document.getElementById("cropStage");
-  var box=document.getElementById("cropBox");
-  if(!st||!box) return;
-  var sw=st.clientWidth||cropState.img.width;
-  var scale=cropState.img.width/sw;
-  var c=cropState;
-  box.style.left=(c.sx/scale)+"px";
-  box.style.top=(c.sy/scale)+"px";
-  box.style.width=(c.sw/scale)+"px";
-  box.style.height=(c.sh/scale)+"px";
-  document.getElementById("cropSize").textContent=Math.round(c.sw)+" × "+Math.round(c.sh)+" 像素";
-}
-function cropReset(){
-  var img=cropState.img; if(!img) return;
-  cropState.sx=Math.round(img.width*0.1); cropState.sy=Math.round(img.height*0.1);
-  cropState.sw=Math.round(img.width*0.8); cropState.sh=Math.round(img.height*0.8);
-  syncCropBox();
-}
-function cropFull(){
-  var img=cropState.img; if(!img) return;
-  cropState.sx=0; cropState.sy=0; cropState.sw=img.width; cropState.sh=img.height;
-  syncCropBox();
-}
-function applyCrop(){
-  var img=cropState.img; if(!img) return;
-  var c=cropState;
-  c.sx=Math.max(0,Math.min(c.sx,img.width-1));
-  c.sy=Math.max(0,Math.min(c.sy,img.height-1));
-  c.sw=Math.max(20,Math.min(c.sw,img.width-c.sx));
-  c.sh=Math.max(20,Math.min(c.sh,img.height-c.sy));
-  const cv=document.getElementById("cv");
-  cv.width=Math.round(c.sw); cv.height=Math.round(c.sh);
-  cv.getContext("2d").drawImage(img,c.sx,c.sy,c.sw,c.sh,0,0,c.sw,c.sh);
-  if(cv.toBlob) cv.toBlob(b=>{ state.photoBlob=b; }, "image/jpeg", 0.88);
-  document.getElementById("previewBox").style.display="block";
-  var pv=document.getElementById("cropPreview");
-  var im=document.getElementById("cropPreviewImg");
-  try{ im.src=cv.toDataURL("image/jpeg",0.7); }catch(e){}
-  pv.style.display="flex";
-  document.getElementById("cropPreviewTip").textContent=Math.round(c.sw)+"×"+Math.round(c.sh)+" 像素，将用这块区域做识别与上传";
-  setStatus("裁剪已应用，接下来点「开始识别」。");
-}
-/* 拖拽交互：移动 + 四角缩放 */
-(function bindCrop(){
-  var box=document.getElementById("cropBox");
-  var stage=document.getElementById("cropStage");
-  if(!box||!stage) return;
-  function startDrag(mode, ev){
-    ev.preventDefault(); ev.stopPropagation();
-    var c=cropState, img=c.img; if(!img) return;
-    var rect=stage.getBoundingClientRect();
-    var scale=img.width/(rect.width||img.width);
-    c.dragging=mode;
-    c.ox0=ev.clientX-rect.left; c.oy0=ev.clientY-rect.top;
-    c.sx0=c.sx; c.sy0=c.sy; c.sw0=c.sw; c.sh0=c.sh;
-    c.scale=scale;
-  }
-  box.addEventListener("mousedown", function(e){
-    var t=e.target.className||"";
-    if(t.indexOf("h-")===0) startDrag(t.slice(2), e); else startDrag("move", e);
-  });
-  box.addEventListener("touchstart", function(e){
-    var t=e.target.className||""; var p=e.touches[0];
-    if(t.indexOf("h-")===0) startDrag(t.slice(2), p); else startDrag("move", p);
-  }, {passive:false});
-  function onMove(ev){
-    var c=cropState; if(!c.dragging||!c.img) return;
-    ev.preventDefault();
-    var pt=(ev.touches&&ev.touches[0])||ev;
-    var rect=stage.getBoundingClientRect();
-    var scale=c.scale||(c.img.width/(rect.width||c.img.width));
-    var ox=pt.clientX-rect.left, oy=pt.clientY-rect.top;
-    var dx=(ox-c.ox0)*scale, dy=(oy-c.oy0)*scale;
-    var W=c.img.width, H=c.img.height;
-    if(c.dragging==="move"){
-      c.sx=Math.max(0,Math.min(W-c.sw,c.sx0+dx));
-      c.sy=Math.max(0,Math.min(H-c.sh,c.sy0+dy));
-    }else{
-      var nsw=c.sw0, nsh=c.sh0, nsx=c.sx0, nsy=c.sy0;
-      if(c.dragging==="ne"||c.dragging==="se"){ nsw=c.sw0+dx; }
-      if(c.dragging==="sw"||c.dragging==="se"){ nsh=c.sh0+dy; }
-      if(c.dragging==="nw"||c.dragging==="ne"){ nsx=c.sx0+dx; nsh=c.sh0+dy; }
-      if(c.dragging==="nw"||c.dragging==="sw"){ nsw=c.sw0+dx; }
-      nsw=Math.max(20,Math.min(nsw,W)); nsh=Math.max(20,Math.min(nsh,H));
-      nsx=Math.max(0,Math.min(nsx,W-nsw)); nsy=Math.max(0,Math.min(nsy,H-nsh));
-      c.sx=nsx; c.sy=nsy; c.sw=nsw; c.sh=nsh;
-    }
-    syncCropBox();
-  }
-  document.addEventListener("mousemove", onMove);
-  document.addEventListener("touchmove", onMove, {passive:false});
-  document.addEventListener("mouseup", function(){ if(cropState.dragging) cropState.dragging=null; });
-  document.addEventListener("touchend", function(){ if(cropState.dragging) cropState.dragging=null; });
-  window.addEventListener("resize", function(){ if(cropState.img) syncCropBox(); });
-})();
-async function runOCR(){
-  if(!document.getElementById("cv").width){ alert("请先选择或拍摄一张营养成分表照片"); return; }
-  const ok=await ensureTesseract(); if(!ok) return;
-  const btn=document.getElementById("ocrBtn"); btn.disabled=true; btn.textContent="识别中…";
-  try{
-    const { data } = await Tesseract.recognize(document.getElementById("cv"), "chi_sim+eng", {
-      logger: m => { if(m.status==="recognizing text") setStatus("识别中… "+Math.round(m.progress*100)+"%");
-                     else if(m.status) setStatus("模型状态："+m.status+"（首次需下载约 20MB 中文模型）"); }
-    });
-    document.getElementById("ocrText").value=data.text||"";
-    setStatus("识别完成，请核对下方解析结果。");
-    parseText();
-    if(!document.getElementById("ocrText").value.trim()){
-      showOcrFail("图片里没有识别到任何文字。常见原因：图片太暗或反光、营养成分表太小、或者拍到的是包装正面而不是背面表格。");
-    }
-  }catch(err){
-    var msg=err&&err.message?err.message:String(err);
-    setStatus("识别出错："+msg);
-    if(/network|fetch|load|timeout/i.test(msg)){
-      showOcrFail("识别引擎没能加载或中途断网了。首次使用需要下载约 20MB 的中文识别模型，请检查网络后重试。", "识别引擎没能启动");
-    }else{
-      showOcrFail("识别过程出错了："+msg, "识别出错了");
-    }
-  }
-  btn.disabled=false; btn.textContent="开始识别";
-}
+
 /* ---- 从文字解析（OCR 结果或手动粘贴） ---- */
 function grabNum(pat, text){
   const m = text.match(pat);
@@ -3547,48 +3422,6 @@ function parseText(){
   document.getElementById("parseTip").innerHTML = tips.length
     ? "⚠ 解析可能不完整：" + tips.join("、") + "。请在上方手动补填，或修正左侧原文后重新解析。"
     : "解析成功，请核对数值后保存。能量已由千焦换算为千卡（1 千卡 ≈ 4.184 kJ）。";
-  if(tips.length>=3){
-    showOcrFail("识别到的文字里没能解析出 "+tips.join("、")+"。可以裁剪出表格区域重试，或者直接照着包装上的数字手动填写。", "解析出来的数值不完整");
-  }else{
-    hideOcrFail();
-  }
-}
-/* ---- 营养项快捷填充 ---- */
-/* 常见包装食品 / 中式点心的每 100g 参考值，点一下直接填进表单 */
-const FILL_PRESETS = [
-  {n:"纯牛奶",v:[54,3.0,3.2,3.4]},
-  {n:"酸奶",v:[72,3.2,2.7,9.3]},
-  {n:"全麦面包",v:[246,8.8,3.5,45.0]},
-  {n:"方便面（含料）",v:[470,9.5,21.0,60.0]},
-  {n:"薯片",v:[548,6.0,35.0,52.0]},
-  {n:"可乐",v:[43,0.0,0.0,10.8]},
-  {n:"鸡蛋",v:[144,13.3,8.8,2.8]},
-  {n:"米饭（熟）",v:[116,2.6,0.3,25.9]},
-  {n:"鸡胸肉",v:[133,19.4,5.0,2.5]},
-  {n:"豆腐",v:[116,12.2,4.8,4.2]},
-  {n:"香蕉",v:[93,1.4,0.2,22.0]},
-  {n:"燕麦片（干）",v:[377,15.0,6.7,61.0]}
-];
-function renderFillPresets(){
-  var box=document.getElementById("fillRow");
-  if(!box) return;
-  box.innerHTML=FILL_PRESETS.map(function(p,i){
-    return '<button class="fill-chip" type="button" onclick="applyFill('+i+')" title="'+p.n+'：'+p.v[0]+' 千卡 / 100g">'
-      +p.n+'<small>'+p.v[0]+'kcal</small></button>';
-  }).join("");
-}
-function applyFill(i){
-  var p=FILL_PRESETS[i]; if(!p) return;
-  var fName=document.getElementById("fName");
-  if(fName && !fName.value.trim()) fName.value=p.n;
-  document.getElementById("fKcal").value=p.v[0];
-  document.getElementById("fKj").value=Math.round(p.v[0]*4.184);
-  document.getElementById("fP").value=p.v[1];
-  document.getElementById("fF").value=p.v[2];
-  document.getElementById("fC").value=p.v[3];
-  var tip=document.getElementById("parseTip");
-  if(tip) tip.innerHTML="已填入「'+p.n+'」参考值（每100g '+p.v[0]+' 千卡），可按包装实际数值再修改。";
-  toast("已填入 '+p.n+' 参考值","ok");
 }
 function syncFromKj(){
   const kj=parseFloat(document.getElementById("fKj").value);
@@ -3614,14 +3447,6 @@ async function saveCustom(){
   let kcal=parseFloat(document.getElementById("fKcal").value);
   const p=+document.getElementById("fP").value||0, f=+document.getElementById("fF").value||0, c=+document.getElementById("fC").value||0;
   if(!name){ alert("请填写食物名称"); return; }
-  /* 数值范围校验：先看蛋白/脂肪/碳水，再看能量 */
-  ["fP","fF","fC","fKcal","fKj"].forEach(function(id){
-    var el=document.getElementById(id);
-    if(el) validateField(el);
-  });
-  if(!validateField(document.getElementById("fP"))||!validateField(document.getElementById("fF"))||!validateField(document.getElementById("fC"))){
-    toast("营养素数值超出合理范围，请检查","err"); return;
-  }
   if(isNaN(kcal)) kcal=Math.round(p*4+c*4+f*9);
   if(isNaN(kcal)||kcal<0){ alert("请填写能量，或至少填写蛋白/脂肪/碳水"); return; }
   if(!state.user){ toast("登录后才能保存","err"); return; }
@@ -3650,6 +3475,7 @@ async function saveCustom(){
     document.getElementById("parseTip").innerHTML="已保存到云端：<b>"+esc(name)+"</b>（每100g "+Math.round(kcal)+" 千卡）。回到「今日饮食」搜索名称即可使用。";
     setStatus("已存入云端食物库。");
     toast("已保存到云端","ok");
+    cfUploaded(1);
   }catch(err){
     toast("保存失败："+errText(err,"请稍后重试"),"err");
   }
@@ -3669,6 +3495,7 @@ async function delCustom(id){
     state.custom=state.custom.filter(x=>String(x.id)!==String(id));
     renderCustom();
     toast("已删除","ok");
+    cfUploaded(0);
   }catch(err){
     toast("删除失败："+errText(err,"请稍后重试"),"err");
   }
@@ -3743,6 +3570,7 @@ function importFoods(e){
       if(res.error) throw res.error;
       state.custom=(res.data||[]).concat(state.custom);
       renderCustom();
+      cfUploaded(rows.length);
       alert("已导入 "+rows.length+" 条到云端食物库");
     }catch(err){ alert("导入失败："+errText(err,"请稍后重试")); }
     e.target.value="";
@@ -3914,8 +3742,8 @@ function calc(){
   document.getElementById("goalKcal").textContent=Math.round(target);
   renderLog(); scheduleProfileSave();
 }
-bindAuthEvents(); loadCfg(); renderRuntimeStatus(); renderQuickCats(); renderQuickFreq();
-renderFillPresets(); bindFieldValidation(); restoreTips(); boot()
+bindAuthEvents(); renderRuntimeStatus(); renderQuickCats(); renderQuickFreq();
+bindFieldValidation(); restoreTips(); boot(); loadDishModels(); loadOcrModels(); cfInit();
 
 /* 自有域名下的提示：云服务要求官方 Origin，同源代理无解，直接指引到官方地址 */
 function guardOwnDomain() {
@@ -3924,6 +3752,685 @@ function guardOwnDomain() {
   if (sk) sk.textContent = "当前域名无法登录";
   showOriginGate();
 }
+
+/* ================= AI 菜品识别 + 份量估算热量（WorkBuddy 内置 LLM · 视觉模型） =================
+   调用链路（官方 SDK 能力，无自建后端、无密钥）：
+     1) cloud.llm.models.list()                     取模型目录，只保留 supportsImages === true
+     2) cloud.llm.chat.completions.create({stream:true})  多模态消息：
+        [{type:"text"},{type:"image_url",image_url:{url:"data:image/jpeg;base64,..."}}]
+   识别结果里带每种食材的目测克数，再用页面内置食物库（FOODS，每 100g 数据）换算热量。
+   克数由模型目测、热量按食物库换算，属粗略估算；图片只在本次请求中发送，不落库。
+   未匹配到本地食物库的食材，可单独让模型给出每 100g 营养值：结果可计入本次估算，
+   登录后还能一键写进「我的食物库」（custom_foods），下次自动命中。 */
+var DISH_MODEL_PREF = ["glm-5v-turbo","hy4-preview","hy3","glm-5.3-flash","deepseek-v4-flash","glm-5.2","glm-5.3","minimax-m3"];
+var DISH_SYS = "你是精通中餐与常见西餐的菜品识别与份量估算助手。只输出一个 JSON 对象：不要解释、不要 Markdown 代码块、不要输出任何置信度数值。只根据图片中实际能看到的内容作答，看不清的宁可不写。";
+var DISH_PROMPT = "请识别图片中的菜品，并目测每种食材在整盘菜里的可食用重量（克）。严格只输出如下 JSON（不要任何其它文字）："
+  + "{\"dish_name\":\"最可能的菜品名称\",\"alternatives\":[\"其它可能的菜品名称，最多 3 个\"],"
+  + "\"description\":\"判断依据：看到的颜色、形态、配料、容器等\","
+  + "\"ingredients\":[{\"name\":\"食材名\",\"grams\":估算克数}],\"uncertain\":false}"
+  + "。要求：dish_name 用中文；ingredients 只列图片里能认出的主要食材（3-8 项），grams 为整数克数、按常见份量目测；"
+  + "判断不出具体菜名时给出最接近的类别并把 uncertain 设为 true；不要编造图片中看不到的食材。";
+var dishState = { name: "", raw: "", cal: null, data: null };
+var dishModelErr = null;
+/* AI 补查营养值的结果缓存：key = 归一化食材名 */
+var dishAI = {};
+/* 营养补查（纯文本请求，不需要图片） */
+var NUTRI_SYS = "你是食物营养成分估算助手。只输出一个 JSON 对象：不要解释、不要 Markdown 代码块、不要编造虚假精度。数值取常见食物成分表（每 100 克可食部）的量级。";
+
+function dishEsc(s){
+  return String(s == null ? "" : s).replace(/[&<>"']/g, function(c){
+    return { "&":"&amp;", "<":"&lt;", ">":"&gt;", '"':"&quot;", "'":"&#39;" }[c];
+  });
+}
+function dishKey(s){
+  return String(s == null ? "" : s).replace(/\s+/g, "").toLowerCase();
+}
+function dishCloud(){
+  if(!cloud) throw new Error("云端组件未就绪，无法调用视觉模型（" + (window.__cloudInitError || "未知原因") + "）");
+  return cloud;
+}
+async function loadDishModels(){
+  var sel = document.getElementById("dishModel");
+  if(!sel) return;
+  sel.innerHTML = '<option value="">加载中…</option>';
+  dishModelErr = null;
+  var vision = [];
+  try{
+    var ms = await dishCloud().llm.models.list();
+    vision = (ms || []).filter(function(m){
+      return m && m.id && m.disabled !== true && m.disabledMultimodal !== true && m.supportsImages === true;
+    });
+  }catch(e){
+    dishModelErr = e;
+    sel.innerHTML = (e && (e.status === 403 || e.status === 401))
+      ? '<option value="">当前域名不在云服务允许的来源内</option>'
+      : '<option value="">模型列表加载失败</option>';
+    return;
+  }
+  if(!vision.length){ sel.innerHTML = '<option value="">当前应用没有支持图片输入的模型</option>'; return; }
+  sel.innerHTML = vision.map(function(m){
+    return '<option value="' + dishEsc(m.id) + '">' + dishEsc(m.name || m.id) + '（' + dishEsc(m.id) + '）</option>';
+  }).join("");
+  var saved = null;
+  try{ saved = localStorage.getItem("calDishModel"); }catch(e){}
+  var pick = (saved && vision.some(function(m){ return m.id === saved; }))
+    ? saved
+    : (DISH_MODEL_PREF.filter(function(id){ return vision.some(function(m){ return m.id === id; }); })[0] || vision[0].id);
+  sel.value = pick;
+}
+function saveDishModel(){
+  var v = (document.getElementById("dishModel") || {}).value;
+  if(v){ try{ localStorage.setItem("calDishModel", v); }catch(e){} }
+}
+function dishModelId(){
+  return String((document.getElementById("dishModel") || {}).value || "").trim();
+}
+function dishDownscale(cv, maxSide){
+  var s = Math.min(1, maxSide / Math.max(cv.width, cv.height));
+  var out = document.createElement("canvas");
+  out.width = Math.max(1, Math.round(cv.width * s));
+  out.height = Math.max(1, Math.round(cv.height * s));
+  var ctx = out.getContext("2d");
+  ctx.fillStyle = "#fff"; ctx.fillRect(0, 0, out.width, out.height);
+  ctx.drawImage(cv, 0, 0, out.width, out.height);
+  return out;
+}
+function dishToDataUrl(cv){
+  var side = 1024, q = 0.82, url = "";
+  for(var i = 0; i < 5; i++){
+    url = dishDownscale(cv, side).toDataURL("image/jpeg", q);
+    if(url.length <= 900000) break;
+    if(i < 2) q -= 0.12; else side = Math.round(side * 0.75);
+  }
+  return url;
+}
+function parseDishJson(text){
+  if(!text || !String(text).trim()) throw new Error("模型没有返回任何内容");
+  var s = String(text).trim().replace(/^```(?:json)?\s*/i, "").replace(/```\s*$/, "");
+  var a = s.indexOf("{"), b = s.lastIndexOf("}");
+  if(a < 0 || b <= a) throw new Error("模型没有返回 JSON 结构");
+  var obj;
+  try{ obj = JSON.parse(s.slice(a, b + 1)); }
+  catch(e){ throw new Error("模型返回的内容不是合法 JSON"); }
+  if(!obj || typeof obj !== "object") throw new Error("模型返回的内容不是 JSON 对象");
+  var name = (obj.dish_name != null) ? String(obj.dish_name).trim() : "";
+  if(!name) throw new Error("模型返回了 JSON，但缺少 dish_name 字段");
+  function arr(v){ return Array.isArray(v) ? v.map(function(x){ return String(x).trim(); }).filter(Boolean) : []; }
+  function grams(v){
+    if(typeof v === "number") return v;
+    var m = String(v == null ? "" : v).match(/\d+(\.\d+)?/);
+    return m ? parseFloat(m[0]) : 0;
+  }
+  var ing = [];
+  if(Array.isArray(obj.ingredients)){
+    obj.ingredients.forEach(function(it){
+      if(it && typeof it === "object"){
+        var nm = String(it.name != null ? it.name : "").trim();
+        if(nm) ing.push({ name: nm, grams: Math.max(0, Math.min(1500, Math.round(grams(it.grams)))) });
+      }else if(typeof it === "string" && it.trim()){
+        ing.push({ name: it.trim(), grams: 0 });
+      }
+    });
+  }
+  return {
+    dish_name: name,
+    alternatives: arr(obj.alternatives).slice(0, 5),
+    description: (obj.description != null ? String(obj.description).trim().replace(/^判断依据[:：]\s*/, "") : ""),
+    ingredients: ing.slice(0, 8),
+    uncertain: (obj.uncertain === true)
+  };
+}
+
+/* ---------- 食材 → 本地食物库 / 我的食物库 匹配 ---------- */
+/* 常见叫法归一：模型说“鸡肉丁”，食物库里叫“鸡胸肉（生）” */
+var DISH_SYN = {
+  "鸡肉":"鸡胸肉（生）","鸡胸":"鸡胸肉（生）","鸡胸肉":"鸡胸肉（生）","鸡丁":"鸡胸肉（生）","鸡腿肉":"鸡腿（带皮，生）",
+  "猪肉":"猪里脊（生）","猪瘦肉":"猪后腿肉（瘦）","瘦肉":"猪后腿肉（瘦）","五花肉":"猪五花肉（生）","牛肉":"牛肉（瘦，生）",
+  "肉末":"猪里脊（生）","肉沫":"猪里脊（生）","肉馅":"猪里脊（生）","猪肉末":"猪里脊（生）","猪肉馅":"猪里脊（生）","牛肉末":"牛肉（瘦，生）",
+  "花生米":"花生（炒）","花生":"花生（炒）","花生碎":"花生（炒）",
+  "豆腐":"北豆腐","老豆腐":"北豆腐","嫩豆腐":"南豆腐","内酯豆腐":"南豆腐",
+  "食用油":"植物油","色拉油":"植物油","油":"植物油","菜籽油":"植物油","调和油":"植物油",
+  "生抽":"酱油","老抽":"酱油","豉油":"酱油",
+  "大葱":"洋葱","小葱":"洋葱","香葱":"洋葱","葱":"洋葱","葱白":"洋葱","葱段":"洋葱",
+  "米饭":"米饭（蒸，熟）","白饭":"米饭（蒸，熟）","大米":"米饭（蒸，熟）",
+  "面条":"面条（煮熟）","面":"面条（煮熟）",
+  "虾":"基围虾","大虾":"基围虾","鲜虾":"基围虾",
+  "木耳":"木耳（水发）","黑木耳":"木耳（水发）",
+  "香菇":"香菇（鲜）","蘑菇":"口蘑","口蘑":"口蘑",
+  "土豆":"土豆（蒸）","马铃薯":"土豆（蒸）","红薯":"红薯（蒸）","地瓜":"红薯（蒸）",
+  "玉米":"玉米（鲜，煮）","玉米粒":"玉米（鲜，煮）",
+  "鸡蛋":"鸡蛋","蛋":"鸡蛋","蛋液":"鸡蛋",
+  "牛肉片":"牛肉（瘦，生）","牛里脊":"牛肉（瘦，生）","肥牛":"牛腩",
+  "青辣椒":"青椒","尖椒":"青椒","彩椒":"青椒","柿子椒":"青椒",
+  "西红柿":"番茄","番茄":"番茄",
+  "青菜":"炒青菜（油炒）","小白菜":"大白菜","白菜":"大白菜",
+  "江米":"米饭（蒸，熟）","糯米":"米饭（蒸，熟）",
+  "白芝麻":"芝麻","芝麻":"芝麻",
+  "辣椒油":"植物油","红油":"植物油"
+};
+function dishCore(s){
+  var t = String(s == null ? "" : s).replace(/[（(][^）)]*[）)]/g, "").trim();
+  var cut = t.replace(/(丁|丝|片|块|条|末|碎|粒|段|小?块|薄片|肉丝|肉片)+$/g, "").trim();
+  /* 剥掉修饰词后至少留 2 个字，避免“肉末→肉”这类过泛的核心词乱匹配 */
+  return cut.length >= 2 ? cut : t;
+}
+function dishOverlap(q, fcore){
+  if(q.length < 2 || fcore.length < 2) return 0;
+  var A = {}, B = {}, n = 0, uni = 0;
+  for(var k = 0; k < q.length; k++) A[q[k]] = 1;
+  for(var m = 0; m < fcore.length; m++) B[fcore[m]] = 1;
+  for(var c in A){ uni++; if(B[c]) n++; }
+  for(var y in B){ if(!A[y]) uni++; }
+  return uni ? Math.round(n / uni * 80) : 0;
+}
+function dishMatch(name){
+  var raw = String(name || "").trim();
+  if(!raw) return null;
+  var q = dishCore(raw) || raw;
+  var syn = DISH_SYN[raw] || DISH_SYN[q];
+  if(syn){
+    for(var i = 0; i < FOODS.length; i++){
+      if(FOODS[i][0] === syn) return { idx:i, food:FOODS[i], score:96, via:syn === raw ? "" : syn };
+    }
+  }
+  var best = null;
+  for(var j = 0; j < FOODS.length; j++){
+    var fname = FOODS[j][0], fcore = dishCore(fname);
+    var s = 0, via = "";
+    if(fcore === q || fname === raw){ s = 100; }
+    else if(q.length >= 2 && (fcore.indexOf(q) >= 0 || q.indexOf(fcore) >= 0)){
+      s = 86 - Math.min(12, Math.abs(fcore.length - q.length) * 2);
+      via = fname;
+    }else if(q.length >= 2){
+      s = dishOverlap(q, fcore);
+      if(s > 0) via = fname;
+    }
+    if(s > 0 && (!best || s > best.score)) best = { idx:j, food:FOODS[j], score:s, via:via };
+  }
+  return (best && best.score >= 62) ? best : null;
+}
+/* 匹配「我的食物库」（云端 custom_foods）；同名精确优先 */
+function dishMatchCustom(name){
+  var list = (state && state.custom) || [];
+  if(!list.length) return null;
+  var raw = String(name || "").trim();
+  if(!raw) return null;
+  var q = dishCore(raw) || raw;
+  var best = null;
+  for(var i = 0; i < list.length; i++){
+    var o = list[i], nm = String(o.name == null ? "" : o.name).trim();
+    if(!nm) continue;
+    if(!(+o.kcal > 0)) continue;
+    var nc = dishCore(nm), s = 0;
+    if(nm === raw || nc === q) s = 98;
+    else if(q.length >= 2 && nc.length >= 2 && (nc.indexOf(q) >= 0 || q.indexOf(nc) >= 0)) s = 84;
+    else s = dishOverlap(q, nc);
+    if(s > 0 && (!best || s > best.score)) best = { idx:i, obj:o, score:s, name:nm };
+  }
+  return (best && best.score >= 62) ? best : null;
+}
+function dishFoodNut(f){
+  return { name:f[0], kcal:+f[1] || 0, p:+f[2] || 0, f:+f[3] || 0, c:+f[4] || 0 };
+}
+/* 统一解析：本地精确 → 我的食物库 → 已采纳的 AI 估值 → 本地近似 */
+function dishResolve(name){
+  var raw = String(name || "").trim();
+  if(!raw) return null;
+  var local = dishMatch(raw);
+  if(local && local.score >= 95) return { nut:dishFoodNut(local.food), via:"", score:100, src:"local" };
+  var cus = dishMatchCustom(raw);
+  if(cus){
+    var o = cus.obj;
+    return { nut:{ name:cus.name, kcal:+o.kcal || 0, p:+o.protein || 0, f:+o.fat || 0, c:+o.carb || 0 },
+             via:"", score:cus.score, src:"custom" };
+  }
+  var ai = dishAI[dishKey(raw)];
+  if(ai && ai.status === "ok" && ai.adopted && ai.data){
+    return { nut:{ name:ai.data.name || raw, kcal:ai.data.kcal, p:ai.data.protein, f:ai.data.fat, c:ai.data.carb },
+             via:ai.data.name || "", score:90, src:"ai" };
+  }
+  if(local) return { nut:dishFoodNut(local.food), via:local.via, score:local.score, src:"local" };
+  return null;
+}
+/* 按克数换算：食物库是每 100g 数据 */
+function dishCalc(ings){
+  var rows = [], total = { grams:0, kcal:0, p:0, f:0, c:0, unknown:0, gramsAll:0, aiCount:0 };
+  (ings || []).forEach(function(it){
+    var g = Math.max(0, Math.min(1500, +it.grams || 0));
+    var key = dishKey(it.name);
+    total.gramsAll += g;
+    var m = dishResolve(it.name);
+    if(!m || !g){
+      rows.push({ name: it.name, key: key, grams: g, matched: m ? m.nut.name : "", kcal: 0, ok: false, src: "" });
+      total.unknown++; return;
+    }
+    var r = g / 100, kcal = m.nut.kcal * r;
+    if(m.src === "ai") total.aiCount++;
+    rows.push({
+      name: it.name, key: key, grams: g, matched: m.nut.name, via: m.via, score: m.score, src: m.src,
+      kcal: kcal, p: m.nut.p * r, f: m.nut.f * r, c: m.nut.c * r, ok: true
+    });
+    total.grams += g; total.kcal += kcal;
+    total.p += m.nut.p * r; total.f += m.nut.f * r; total.c += m.nut.c * r;
+  });
+  return { rows: rows, total: total };
+}
+function dishErrText(e){
+  var code = (e && e.error && e.error.code) || "";
+  var msg = (e && e.message) || String(e);
+  if(e && (e.status === 403 || e.status === 401))
+    return "云服务拒绝了本次请求（HTTP " + e.status + "）：当前页面所在域名不在该云服务允许的访问来源内。该功能只能在云服务对应的官方域名下打开本页时使用（本地 127.0.0.1 调试可用）。";
+  if(/^request_/.test(code)) return "请求被拒绝（" + code + "）：所选模型当前可能不可用，请在上方换一个模型后重试。";
+  if(/^auth_/.test(code))    return "云服务来源校验未通过（" + code + "）：本功能只能在云服务允许的官方域名下打开本页时使用。";
+  if(/^quota_/.test(code))   return "额度不足或被限流（" + code + "）：请稍后再试。";
+  if(/^gateway_|^model_/.test(code)) return "模型服务暂时不可用（" + code + "）：请稍后再试一次。";
+  if(/Failed to fetch|NetworkError|network/i.test(msg)) return "网络请求失败：请检查网络后重试。";
+  return "识别失败：" + msg;
+}
+
+/* ---------- 未匹配食材：让模型补查每 100g 营养值 ---------- */
+function nutriPrompt(name){
+  return "请给出「" + String(name || "").slice(0, 24) + "」每 100 克可食部的营养成分，按最常见的状态（生或熟）取一个最常用值。"
+    + "严格只输出如下 JSON（不要任何其它文字）："
+    + "{\"name\":\"该食材在食物成分表里的标准叫法\",\"basis\":\"生/熟/成品\",\"kcal\":数字,\"protein\":数字,\"fat\":数字,\"carb\":数字,\"note\":\"一句话说明取值依据\"}"
+    + "。要求：kcal 为千卡/100g，取值 1-900；protein、fat、carb 为克/100g，取值 0-100；"
+    + "拿不准时按同类食材的常见值给出，并在 note 里写明是同类估算；不要输出虚假的高精度小数。";
+}
+function numOf(v){
+  if(typeof v === "number") return v;
+  var m = String(v == null ? "" : v).match(/-?\d+(\.\d+)?/);
+  return m ? parseFloat(m[0]) : NaN;
+}
+function parseNutriJson(text, fallbackName){
+  if(!text || !String(text).trim()) throw new Error("模型没有返回任何内容");
+  var s = String(text).trim().replace(/^```(?:json)?\s*/i, "").replace(/```\s*$/, "");
+  var a = s.indexOf("{"), b = s.lastIndexOf("}");
+  if(a < 0 || b <= a) throw new Error("模型没有返回 JSON 结构");
+  var obj;
+  try{ obj = JSON.parse(s.slice(a, b + 1)); }
+  catch(e){ throw new Error("模型返回的内容不是合法 JSON"); }
+  var kcal = numOf(obj.kcal), p = numOf(obj.protein), f = numOf(obj.fat), c = numOf(obj.carb);
+  if(!isFinite(kcal) || kcal <= 0) throw new Error("模型没有给出有效的热量值");
+  if(!isFinite(p)) p = 0;
+  if(!isFinite(f)) f = 0;
+  if(!isFinite(c)) c = 0;
+  if(kcal > 900 || p > 100 || f > 100 || c > 100) throw new Error("模型给出的数值超出合理范围");
+  var at = 4 * p + 4 * c + 9 * f;
+  var gap = at > 0 ? Math.abs(at - kcal) / Math.max(kcal, at) : 0;
+  return {
+    name: String(obj.name == null ? "" : obj.name).trim() || String(fallbackName || "").trim(),
+    basis: String(obj.basis == null ? "" : obj.basis).trim(),
+    kcal: Math.round(kcal * 10) / 10,
+    protein: Math.round(p * 10) / 10,
+    fat: Math.round(f * 10) / 10,
+    carb: Math.round(c * 10) / 10,
+    note: String(obj.note == null ? "" : obj.note).trim().replace(/^取值依据[:：]\s*/, ""),
+    /* 三大营养素折算与热量对不上时提示（不拦截，仅提示核对） */
+    suspicious: gap > 0.45 && kcal > 30
+  };
+}
+async function dishChatText(messages){
+  var modelId = dishModelId();
+  if(!modelId) throw new Error("还没有可用的模型，请点「刷新模型列表」后再试");
+  var callOnce = async function(){
+    var stream = dishCloud().llm.chat.completions.create({
+      model: modelId, stream: true, temperature: 0.1, messages: messages
+    });
+    var acc = "";
+    for await (const chunk of stream){
+      var d = chunk.choices && chunk.choices[0] && chunk.choices[0].delta;
+      if(d && d.content) acc += d.content;
+    }
+    return acc;
+  };
+  try{
+    return await callOnce();
+  }catch(e1){
+    var code1 = (e1 && e1.error && e1.error.code) || "";
+    var busy = (e1 && (e1.status === 502 || e1.status === 503 || e1.status === 504)) || /^gateway_/.test(code1);
+    if(!busy) throw e1;
+    await new Promise(function(r){ setTimeout(r, 900); });
+    return await callOnce();
+  }
+}
+function dishRender(){ if(dishState.data) renderDishCal(dishState.data); }
+async function dishAIQuery(idx){
+  var cal = dishState.cal;
+  var row = cal && cal.rows[idx];
+  if(!row) return false;
+  var key = row.key;
+  if(dishAI[key] && dishAI[key].status === "loading") return false;
+  dishAI[key] = { status:"loading", data:null, err:"", adopted:false, saved:false };
+  dishRender();
+  try{
+    var txt = await dishChatText([
+      { role:"system", content: NUTRI_SYS },
+      { role:"user", content: nutriPrompt(row.name) }
+    ]);
+    dishAI[key] = { status:"ok", data: parseNutriJson(txt, row.name), err:"", adopted:false, saved:false };
+  }catch(e){
+    dishAI[key] = { status:"err", data:null, err: dishErrText(e), adopted:false, saved:false };
+  }
+  dishRender();
+  return dishAI[key].status === "ok";
+}
+/* 计入本次估算 / 撤销 */
+function dishAIAdopt(idx){
+  var cal = dishState.cal, row = cal && cal.rows[idx];
+  if(!row) return;
+  var a = dishAI[row.key];
+  if(!a || a.status !== "ok") return;
+  a.adopted = !a.adopted;
+  dishRender();
+}
+/* 写进「我的食物库」（需要登录，云端 custom_foods） */
+async function dishAISave(idx, btn){
+  var cal = dishState.cal, row = cal && cal.rows[idx];
+  if(!row) return;
+  var a = dishAI[row.key];
+  if(!a || a.status !== "ok" || !a.data) return;
+  if(!state.user){ toast("登录后才能存入云端食物库；当前结果可以先用于本次估算","err"); return; }
+  var d = a.data;
+  var nm = String(d.name || row.name).trim();
+  var dup = (state.custom || []).filter(function(x){ return String(x.name || "").trim() === nm; })[0];
+  if(dup || a.saved){
+    a.saved = true;
+    toast("食物库里已有「" + nm + "」，直接可用","ok");
+    dishRender();
+    return;
+  }
+  if(btn){ btn.disabled = true; btn.textContent = "保存中…"; }
+  try{
+    var r = await cloud.database.from("custom_foods").insert({
+      name: nm,
+      kcal: d.kcal,
+      protein: d.protein,
+      fat: d.fat,
+      carb: d.carb,
+      sodium: null,
+      unit_name: "100 克",
+      unit_grams: 100,
+      category: "AI 估算"
+    }).select();
+    if(r.error) throw r.error;
+    var saved = (r.data && r.data[0]) || { name:nm, kcal:d.kcal, protein:d.protein, fat:d.fat, carb:d.carb, unit_grams:100, unit_name:"100 克" };
+    state.custom.unshift(saved);
+    a.saved = true;
+    a.adopted = true;
+    if(typeof renderCustom === "function") renderCustom();
+    if(typeof cfUploaded === "function") cfUploaded(1);
+    toast("已存入我的食物库（每 100g " + Math.round(d.kcal) + " 千卡）","ok");
+  }catch(e){
+    toast("保存失败：" + errText(e, "请稍后重试"),"err");
+  }
+  if(btn){ btn.disabled = false; btn.textContent = "存入我的食物库"; }
+  dishRender();
+}
+/* 一键补齐所有未匹配食材（串行，自动计入估算） */
+var dishFillAll = { running:false, cur:0, total:0 };
+async function dishAIFillAll(){
+  if(dishFillAll.running) return;
+  var cal = dishState.cal;
+  if(!cal) return;
+  var todo = [];
+  cal.rows.forEach(function(r, i){ if(!r.ok && r.grams > 0) todo.push(i); });
+  if(!todo.length){ toast("没有需要补查的食材","ok"); return; }
+  var okCount = 0;
+  dishFillAll = { running:true, cur:0, total:todo.length };
+  dishRender();
+  for(var k = 0; k < todo.length; k++){
+    dishFillAll.cur = k + 1;
+    dishRender();
+    var row = dishState.cal.rows[todo[k]];
+    if(!row || row.ok) continue;
+    var good = await dishAIQuery(todo[k]);
+    var cur = dishState.cal.rows[todo[k]];
+    if(good && cur && dishAI[cur.key]){
+      dishAI[cur.key].adopted = true;
+      okCount++;
+    }
+  }
+  dishFillAll.running = false;
+  dishRender();
+  var firstKey = dishState.cal && dishState.cal.rows[todo[0]] ? dishState.cal.rows[todo[0]].key : "";
+  toast(okCount ? ("已为 " + okCount + " 项食材补上热量估算") : ("补查失败：" + ((dishAI[firstKey] || {}).err || "请稍后重试")), okCount ? "ok" : "err");
+}
+
+function renderDishCal(data, thumb){
+  var cal = dishCalc(data.ingredients);
+  dishState.cal = cal;
+  dishState.data = data;
+  var hasGram = cal.rows.some(function(r){ return r.grams > 0; });
+  var box = document.getElementById("dishCal");
+  var ingEl = document.getElementById("dishIng");
+  var allEl = document.getElementById("dishAiAll");
+
+  /* 没有任何克数（模型没给）→ 只展示文字食材，不给热量 */
+  if(!hasGram || !cal.rows.length){
+    box.classList.add("hidden");
+    dishState.cal = null;
+    if(allEl) allEl.innerHTML = "";
+    ingEl.textContent = data.ingredients.length ? ("主要食材：" + data.ingredients.map(function(x){ return x.name; }).join("、")) : "";
+    return;
+  }
+  ingEl.textContent = "";
+
+  var t = cal.total;
+  document.getElementById("dishKcal").textContent = Math.round(t.kcal);
+  document.getElementById("dishMacros").innerHTML =
+      '<i class="mp">蛋白 ' + t.p.toFixed(1) + ' g</i>'
+    + '<i class="mc">碳水 ' + t.c.toFixed(1) + ' g</i>'
+    + '<i class="mf">脂肪 ' + t.f.toFixed(1) + ' g</i>';
+
+  var rows = '';
+  cal.rows.forEach(function(r, i){
+    if(!r.ok){
+      var a0 = dishAI[r.key] || null;
+      var chip;
+      if(a0 && a0.status === "loading"){
+        chip = '<button class="dc-ai-btn" type="button" disabled>查询中…</button>';
+      }else if(a0 && a0.status === "err"){
+        chip = '<button class="dc-ai-btn" type="button" onclick="dishAIQuery(' + i + ')">重试</button>';
+      }else{
+        chip = '<button class="dc-ai-btn" type="button" onclick="dishAIQuery(' + i + ')">AI 查热量</button>';
+      }
+      rows += '<div class="dc-row miss"><span class="n">' + dishEsc(r.name)
+        + '</span><span class="g">' + (r.grams ? "约 " + r.grams + "g" : "份量未知")
+        + '</span>' + chip + '</div>';
+      rows += dishAiPanel(r, i, a0);
+      return;
+    }
+    var tag = "";
+    if(r.src === "custom") tag = '<span class="via src-custom">我的库</span>';
+    else if(r.src === "ai") tag = '<span class="via src-ai">AI 估值</span>';
+    else if(r.via && r.score < 96) tag = '<span class="via">≈' + dishEsc(r.via) + '</span>';
+    var aiA = r.src === "ai" ? dishAI[r.key] : null;
+    var undo = (aiA && aiA.adopted) ? '<button class="dc-undo" type="button" onclick="dishAIAdopt(' + i + ')" title="取消采用这个 AI 估值">撤销</button>' : '';
+    rows += '<div class="dc-row"><span class="n">' + dishEsc(r.name) + tag + undo
+      + '</span><span class="g">约 ' + r.grams + 'g</span><span class="k">' + Math.round(r.kcal) + ' 千卡</span></div>';
+  });
+  if(t.unknown){
+    rows += '<div class="dc-row total"><span class="n">已匹配 ' + (cal.rows.length - t.unknown) + '/' + cal.rows.length + ' 种食材</span>'
+      + '<span class="g">共约 ' + Math.round(t.grams) + 'g</span><span class="k">' + Math.round(t.kcal) + ' 千卡</span></div>';
+  }else{
+    rows += '<div class="dc-row total"><span class="n">合计</span><span class="g">共约 ' + Math.round(t.grams) + 'g</span>'
+      + '<span class="k">' + Math.round(t.kcal) + ' 千卡</span></div>';
+  }
+  if(!t.grams){ rows = '<div class="dc-row miss"><span class="n">食材都没能匹配到本地食物库</span><span class="g"></span><span class="k">无法估算</span></div>'; }
+  document.getElementById("dishIngRows").innerHTML = rows;
+
+  /* 一键补查入口 */
+  if(allEl){
+    var miss = cal.rows.filter(function(r){ return !r.ok && r.grams > 0; }).length;
+    if(dishFillAll.running){
+      allEl.innerHTML = '<button class="btn-sm dc-ai-all-btn" type="button" disabled>AI 查询中 '
+        + dishFillAll.cur + '/' + dishFillAll.total + '…</button>';
+    }else{
+      allEl.innerHTML = miss
+        ? '<button class="btn-sm dc-ai-all-btn" type="button" onclick="dishAIFillAll()">AI 补查剩余 ' + miss + ' 项食材的热量</button>'
+        : '';
+    }
+  }
+
+  /* 同名单品参考（食物库里本来就有这道菜时给一条交叉参考） */
+  var dishMatchRef = dishMatch(data.dish_name);
+  var note = "克数为视觉模型目测估算，热量按食物库每 100g 数据换算，仅作粗略参考（实际用油、做法影响较大）。";
+  if(t.unknown) note += "未匹配的食材未计入，实际热量可能更高；可用「AI 查热量」补上。";
+  if(t.aiCount) note += " 其中 " + t.aiCount + " 项用的是 AI 估值（非权威成分表数据）。";
+  if(dishMatchRef && dishMatchRef.score >= 92){
+    note += " 交叉参考：食物库「" + dishMatchRef.food[0] + "」" + dishMatchRef.food[1] + " 千卡/100g。";
+  }
+  document.getElementById("dishCalNote").textContent = note;
+  document.getElementById("dishAddBtn").disabled = !t.grams;
+  box.classList.remove("hidden");
+}
+/* 未匹配项下方的 AI 结果面板 */
+function dishAiPanel(row, idx, a){
+  if(!a) return "";
+  if(a.status === "loading"){
+    return '<div class="dc-ai-panel loading">正在让 AI 查询「' + dishEsc(row.name) + '」每 100g 的营养成分…</div>';
+  }
+  if(a.status === "err"){
+    return '<div class="dc-ai-panel err">' + dishEsc(a.err || "查询失败") + '</div>';
+  }
+  var d = a.data;
+  var basis = d.basis ? '（' + dishEsc(d.basis) + '）' : '';
+  var html = '<div class="dc-ai-panel">'
+    + '<div class="dc-ai-head"><b>' + dishEsc(d.name || row.name) + '</b>' + basis
+    + '<span class="dc-ai-kcal">' + Math.round(d.kcal) + ' 千卡/100g</span></div>'
+    + '<div class="dc-ai-mac">蛋白 ' + d.protein + ' g · 脂肪 ' + d.fat + ' g · 碳水 ' + d.carb + ' g</div>';
+  if(d.note) html += '<div class="dc-ai-note">' + dishEsc(d.note) + '</div>';
+  if(d.suspicious) html += '<div class="dc-ai-warn">三大营养素折算与热量差距较大，建议核对后再用。</div>';
+  html += '<div class="dc-ai-act">'
+    + '<button class="btn-sm' + (a.adopted ? ' on' : '') + '" type="button" onclick="dishAIAdopt(' + idx + ')">'
+    + (a.adopted ? '已计入本次估算（点击取消）' : '计入本次估算') + '</button>'
+    + '<button class="btn-sm' + (a.saved ? ' on' : '') + '" type="button"'
+    + (a.saved ? ' disabled' : ' onclick="dishAISave(' + idx + ', this)"') + '>'
+    + (a.saved ? '已存入我的食物库' : '存入我的食物库') + '</button>'
+    + '</div>'
+    + '<div class="dc-ai-tip">AI 按常见食物成分表的量级估算，非权威检测数据；登录后可存入你自己的食物库长期复用。</div>'
+    + '</div>';
+  return html;
+}
+function renderDish(data, thumb){
+  document.getElementById("dishName").textContent = data.dish_name;
+  var un = document.getElementById("dishUncertain");
+  un.textContent = data.uncertain ? "模型标记：该结果存在明显不确定性，仅供参考" : "";
+  un.style.color = data.uncertain ? "var(--orange)" : "";
+  document.getElementById("dishAlts").textContent = data.alternatives.length ? ("其它可能：" + data.alternatives.join("、")) : "";
+  document.getElementById("dishDesc").textContent = data.description ? ("判断依据：" + data.description) : "";
+  var th = document.getElementById("dishThumb");
+  if(th && thumb){
+    var c = th.getContext("2d");
+    var s = Math.max(th.width / thumb.width, th.height / thumb.height);
+    var dw = thumb.width * s, dh = thumb.height * s;
+    c.fillStyle = "#fff"; c.fillRect(0, 0, th.width, th.height);
+    c.drawImage(thumb, (th.width - dw) / 2, (th.height - dh) / 2, dw, dh);
+  }
+  renderDishCal(data, thumb);
+  dishState.name = data.dish_name;
+  document.getElementById("dishResult").classList.remove("hidden");
+}
+function fillDishName(){
+  if(!dishState.name) return;
+  document.getElementById("q").value = dishState.name;
+  switchTab("log");
+  onSearch();
+}
+async function addDishToLog(){
+  var cal = dishState.cal, btn = document.getElementById("dishAddBtn");
+  if(!cal || !cal.total.grams){ toast("没有可用的估算数据","err"); return; }
+  if(!state.user){ toast("登录后才能保存记录","err"); return; }
+  var g = Math.round(cal.total.grams);
+  if(btn){ btn.disabled = true; btn.textContent = "保存中…"; }
+  try{
+    var r = await cloud.database.from("food_logs").insert({
+      log_date: today,
+      name: dishState.name + "（AI 估算）",
+      grams: g,
+      kcal: cal.total.kcal / g * 100,
+      protein: cal.total.p / g * 100,
+      fat: cal.total.f / g * 100,
+      carb: cal.total.c / g * 100,
+      sodium: null,
+      source: "ai"
+    }).select();
+    if(r.error) throw r.error;
+    if(r.data && r.data[0]) state.logs.push(r.data[0]);
+    renderLog();
+    toast("已按估算加入今日记录：" + Math.round(cal.total.kcal) + " 千卡","ok");
+  }catch(e){
+    toast("保存失败：" + errText(e, "请检查网络后重试"),"err");
+  }
+  if(btn){ btn.disabled = false; btn.textContent = "把这盘菜加入今日记录"; }
+}
+async function recognizeDish(){
+  var btn = document.getElementById("dishBtn"), errEl = document.getElementById("dishErr"),
+      loadEl = document.getElementById("dishLoading"), resEl = document.getElementById("dishResult");
+  errEl.classList.add("hidden"); errEl.textContent = "";
+  var cv = document.getElementById("cv");
+  var box = document.getElementById("previewBox");
+  if(!cv || !box || box.style.display === "none"){
+    errEl.textContent = "请先在上方选择或拍摄一张菜品照片。"; errEl.classList.remove("hidden"); return;
+  }
+  var modelId = dishModelId();
+  if(!modelId){
+    errEl.textContent = dishModelErr
+      ? dishErrText(dishModelErr)
+      : "还没有可用的视觉模型，请点「刷新模型列表」。";
+    errEl.classList.remove("hidden"); return;
+  }
+  var small, dataUrl;
+  try{ small = dishDownscale(cv, 1024); dataUrl = dishToDataUrl(cv); }
+  catch(e){ errEl.textContent = "图片处理失败：" + ((e && e.message) || e); errEl.classList.remove("hidden"); return; }
+  btn.disabled = true; btn.textContent = "识别中…";
+  resEl.classList.add("hidden"); loadEl.classList.remove("hidden");
+  var callOnce = async function(){
+    var stream = dishCloud().llm.chat.completions.create({
+      model: modelId,
+      stream: true,
+      temperature: 0.2,
+      messages: [
+        { role: "system", content: DISH_SYS },
+        { role: "user", content: [
+          { type: "text", text: DISH_PROMPT },
+          { type: "image_url", image_url: { url: dataUrl } }
+        ] }
+      ]
+    });
+    var acc = "";
+    for await (const chunk of stream){
+      var d = chunk.choices && chunk.choices[0] && chunk.choices[0].delta;
+      if(d && d.content) acc += d.content;
+    }
+    return acc;
+  };
+  try{
+    var out;
+    try{
+      out = await callOnce();
+    }catch(e1){
+      var code1 = (e1 && e1.error && e1.error.code) || "";
+      var busy = (e1 && (e1.status === 502 || e1.status === 503 || e1.status === 504)) || /^gateway_/.test(code1);
+      if(!busy) throw e1;
+      /* 网关偶发 502，自动重试一次 */
+      loadEl.textContent = "模型服务繁忙，正在自动重试…";
+      await new Promise(function(r){ setTimeout(r, 900); });
+      out = await callOnce();
+    }
+    loadEl.textContent = "AI 正在看图识别并估算份量，通常需要几秒…";
+    dishState.raw = out;
+    renderDish(parseDishJson(out), small);
+  }catch(e){
+    resEl.classList.add("hidden");
+    errEl.textContent = dishErrText(e);
+    errEl.classList.remove("hidden");
+  }finally{
+    btn.disabled = false; btn.textContent = "AI 识别这道菜";
+    loadEl.classList.add("hidden");
+  }
+}
+
 </script>
 <script>
 /* ==========================================================================
