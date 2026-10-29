@@ -30,16 +30,21 @@ ${l.stack}`)}else c=o?.stack??"";let f=this.url.toString().length;return o?.name
    浏览器的 Origin 由浏览器生成，脚本无法伪造；服务端转发也不带该头，同样被拒。
    所以在这些域名下无法登录，直接跳转到能用的官方地址。
 
-   用 location.replace 而非 href：跳转不留下历史记录，
-   用户按「后退」不会又跳一次。local/dev 本地调试时可用 ?stay=1 关闭自动跳转。
+   用 location.replace 而非 href：跳转不留下历史记录，用户按「后退」不会又跳一次。
+   官方域名之外的任何来源（含本地双击打开的文件、localhost 预览、自有域名）都会自动跳转，
+   只有带 ?stay=1 时才留在原地，供本地调试使用。
 --------------------------------------------------------------------------- */
 (function () {
   var OFFICIAL = "https://calorie-tracker-19816.app.workbuddy.host/";
+  var OFFICIAL_HOST = "calorie-tracker-19816.app.workbuddy.host";
   var host = location.hostname;
-  // 官方域名放行。本地预览（双击打开文件 / localhost）也放行，方便查看界面；
-  // 其余自有域名仍跳转到官方地址（云服务只放行官方 Origin，登录必须走官方域名）。
-  if (!host || host === "localhost" || host === "127.0.0.1") return;   /* 本地预览 */
-  if (host && host.indexOf("workbuddy.host") >= 0) return;
+  // 只有官方域名放行。
+  // 其余一律跳转到官方地址 —— 包括：
+  //   · 别的自有域名（如 dm.pioneer-x.cn/projects/dm012/）
+  //   · 本地双击打开的文件（file://，hostname 为空串）
+  //   · 本地起服务预览（localhost / 127.0.0.1）
+  // 原因：云服务只放行官方 Origin，在其它来源下连登录都用不了。
+  if (host === OFFICIAL_HOST) return;
   if (/[?&]stay=1/.test(location.search)) return;               /* 显式要求停留（本地调试） */
 
   var from = (host || "local-file") + location.pathname;
@@ -649,6 +654,40 @@ html[data-theme="dark"] .advice.over{color:#E9A0A0}
 .dc-undo:hover{color:var(--red)}
 .via.src-custom{color:var(--green-d);font-weight:600}
 .via.src-ai{color:var(--orange);font-weight:600}
+
+/* ---------- 图片裁剪（AI 识别前框选区域） ---------- */
+.crop-wrap{margin-top:14px;display:none}
+.crop-stage{
+  position:relative;display:inline-block;max-width:100%;line-height:0;
+  border:1px solid var(--border);border-radius:12px;overflow:hidden;background:var(--surface-2);
+  touch-action:none;user-select:none;cursor:crosshair;
+}
+.crop-stage canvas{display:block;max-width:100%;height:auto}
+.crop-box{
+  position:absolute;border:2px solid var(--green);border-radius:4px;
+  box-shadow:0 0 0 9999px rgba(15,23,42,.52),0 0 0 1px rgba(255,255,255,.5) inset;
+  cursor:move;touch-action:none;
+}
+.crop-box .crop-h{
+  position:absolute;width:16px;height:16px;border:3px solid var(--green);background:#fff;border-radius:3px;
+}
+.crop-box .h-nw{left:-9px;top:-9px;border-right:none;border-bottom:none;cursor:nwse-resize}
+.crop-box .h-ne{right:-9px;top:-9px;border-left:none;border-bottom:none;cursor:nesw-resize}
+.crop-box .h-sw{left:-9px;bottom:-9px;border-right:none;border-top:none;cursor:nesw-resize}
+.crop-box .h-se{right:-9px;bottom:-9px;border-left:none;border-top:none;cursor:nwse-resize}
+.crop-box .crop-size{
+  position:absolute;left:50%;transform:translateX(-50%);bottom:-26px;
+  font-size:11px;color:#fff;background:rgba(15,23,42,.75);padding:1px 8px;border-radius:999px;white-space:nowrap;
+}
+.crop-bar{display:flex;gap:8px;flex-wrap:wrap;align-items:center;margin-top:30px}
+.crop-hint{font-size:11.5px;color:var(--muted);margin-top:8px;line-height:1.7}
+.crop-preview{
+  margin-top:12px;display:none;align-items:center;gap:10px;padding:10px;
+  border:1px solid var(--line-soft);border-radius:11px;background:var(--surface-2);
+}
+.crop-preview img{max-width:110px;max-height:80px;border-radius:8px;object-fit:contain;background:var(--card)}
+.crop-preview .cp-t{font-size:12px;color:var(--muted);line-height:1.7}
+.crop-preview .cp-t b{display:block;color:var(--text);font-size:12.5px;margin-bottom:2px}
 
 /* ---------- 表单分组 ---------- */
 .form-group{margin-bottom:18px}
@@ -1279,8 +1318,32 @@ html.intro-done .wrap{animation:contentIn .6s ease both}
         <div class="dz-hint">支持 JPG / PNG，最大 8MB；手机可直接调用相机拍照</div>
       </div>
       <input type="file" id="photo" accept="image/*" capture="environment" onchange="loadPhoto(event)" class="sr-only">
+
+      <!-- 裁剪区：框出要识别的区域（营养成分表 / 菜品），AI 只看这一块 -->
+      <div class="crop-wrap" id="cropWrap">
+        <div class="crop-stage" id="cropStage">
+          <canvas id="cropCanvas"></canvas>
+          <div class="crop-box" id="cropBox">
+            <span class="crop-h h-nw"></span><span class="crop-h h-ne"></span>
+            <span class="crop-h h-sw"></span><span class="crop-h h-se"></span>
+            <span class="crop-size" id="cropSize">拖动方框框住要识别的区域</span>
+          </div>
+        </div>
+        <div class="crop-bar">
+          <button class="btn-sm" type="button" onclick="cropReset()">重置选框</button>
+          <button class="btn-sm" type="button" onclick="cropFull()">用整张图</button>
+          <button class="btn" type="button" onclick="applyCrop()">应用裁剪</button>
+        </div>
+        <div class="crop-hint">💡 只框住「营养成分表」或菜品那一块，识别更快更准。拖动方框移动，拖四角缩放；不裁剪则直接识别整张图。</div>
+      </div>
+
       <div id="previewBox" style="margin-top:14px;display:none">
         <canvas id="cv" width="0" height="0"></canvas>
+      </div>
+
+      <div class="crop-preview" id="cropPreview">
+        <img id="cropPreviewImg" alt="裁剪结果预览">
+        <div class="cp-t"><b>识别区域</b><span id="cropPreviewTip"></span></div>
       </div>
       <div class="row" style="margin-top:14px">
         <button class="btn" onclick="startRecognize()" id="ocrBtn">AI 识别营养成分表</button>
@@ -3259,11 +3322,67 @@ function startRecognize(){
   if(!ocrHasImage()){ alert("请先选择或拍摄一张营养成分表照片"); return; }
   return runVision();
 }
-/* canvas 默认是 300×150，只用宽度判断会漏掉“还没选图”，要连预览区一起看 */
+/* 拖拽交互：移动选框 + 四角缩放 */
+(function bindCrop(){
+  var box = document.getElementById("cropBox");
+  var stage = document.getElementById("cropStage");
+  if(!box || !stage) return;
+  function startDrag(mode, ev){
+    ev.preventDefault(); ev.stopPropagation();
+    var c = cropState, img = c.img; if(!img) return;
+    var rect = stage.getBoundingClientRect();
+    c.dragging = mode;
+    c.ox0 = ev.clientX - rect.left; c.oy0 = ev.clientY - rect.top;
+    c.sx0 = c.sx; c.sy0 = c.sy; c.sw0 = c.sw; c.sh0 = c.sh;
+    c.scale = img.width / (rect.width || img.width);
+  }
+  box.addEventListener("mousedown", function(e){
+    var t = e.target.className || "";
+    if(t.indexOf("h-") === 0) startDrag(t.slice(2), e); else startDrag("move", e);
+  });
+  box.addEventListener("touchstart", function(e){
+    var t = e.target.className || "", p = e.touches[0];
+    if(!p) return;
+    if(t.indexOf("h-") === 0) startDrag(t.slice(2), p); else startDrag("move", p);
+  }, {passive:false});
+  function onMove(ev){
+    var c = cropState; if(!c.dragging || !c.img) return;
+    ev.preventDefault();
+    var pt = (ev.touches && ev.touches[0]) || ev;
+    var rect = stage.getBoundingClientRect();
+    var scale = c.scale || (c.img.width / (rect.width || c.img.width));
+    var ox = pt.clientX - rect.left, oy = pt.clientY - rect.top;
+    var dx = (ox - c.ox0) * scale, dy = (oy - c.oy0) * scale;
+    var W = c.img.width, H = c.img.height;
+    if(c.dragging === "move"){
+      c.sx = Math.max(0, Math.min(W - c.sw, c.sx0 + dx));
+      c.sy = Math.max(0, Math.min(H - c.sh, c.sy0 + dy));
+    }else{
+      var nsw = c.sw0, nsh = c.sh0, nsx = c.sx0, nsy = c.sy0;
+      if(c.dragging === "ne" || c.dragging === "se"){ nsw = c.sw0 + dx; }
+      if(c.dragging === "sw" || c.dragging === "se"){ nsh = c.sh0 + dy; }
+      if(c.dragging === "nw" || c.dragging === "ne"){ nsx = c.sx0 + dx; nsy = c.sy0 + dy; }
+      if(c.dragging === "nw" || c.dragging === "sw"){ nsw = c.sw0 + dx; }
+      nsw = Math.max(20, Math.min(nsw, W)); nsh = Math.max(20, Math.min(nsh, H));
+      nsx = Math.max(0, Math.min(nsx, W - nsw)); nsy = Math.max(0, Math.min(nsy, H - nsh));
+      c.sx = nsx; c.sy = nsy; c.sw = nsw; c.sh = nsh;
+    }
+    syncCropBox();
+  }
+  document.addEventListener("mousemove", onMove);
+  document.addEventListener("touchmove", onMove, {passive:false});
+  document.addEventListener("mouseup", function(){ if(cropState.dragging) cropState.dragging = null; });
+  document.addEventListener("touchend", function(){ if(cropState.dragging) cropState.dragging = null; });
+  window.addEventListener("resize", function(){ if(cropState.img) syncCropBox(); });
+})();
+
+/* canvas 默认是 300×150，只用宽度判断会漏掉“还没选图”，要连裁剪区/预览区一起看 */
 function ocrHasImage(){
   var cv = document.getElementById("cv");
+  var wrap = document.getElementById("cropWrap");
   var box = document.getElementById("previewBox");
-  return !!(cv && cv.width && box && box.style.display !== "none");
+  var shown = (wrap && wrap.style.display !== "none") || (box && box.style.display !== "none");
+  return !!(cv && cv.width && shown);
 }
 async function ocrChat(model, dataUrl){
   var callOnce = async function(){
@@ -3373,22 +3492,107 @@ function fillFromVision(txt){
   setStatus("识别完成，请核对数值（AI 读取，可能有误差）。" + conv);
   switchTab("scan");
 }
+/* ---- 图片裁剪（AI 识别前框选区域） ----
+   原图存 cropState.img；cropCanvas 显示原图 + 可拖拽选框；
+   #cv 是「识别用画布」——未裁剪时等于原图，裁剪后等于选区。
+   AI 营养表识别（ocrImageUrl）与 AI 菜品识别（dishToDataUrl）都从 #cv 取图，
+   所以裁剪对两条链路同时生效；state.photoBlob 也同步为裁剪结果。 */
+var cropState = { img:null, sx:0, sy:0, sw:0, sh:0, dragging:null, sx0:0, sy0:0, sw0:0, sh0:0, ox0:0, oy0:0, scale:1 };
+function syncCropBox(){
+  var st = document.getElementById("cropStage");
+  var box = document.getElementById("cropBox");
+  if(!st || !box || !cropState.img) return;
+  var sw = st.clientWidth || cropState.img.width;
+  var scale = cropState.img.width / sw;
+  var c = cropState;
+  box.style.left = (c.sx / scale) + "px";
+  box.style.top = (c.sy / scale) + "px";
+  box.style.width = (c.sw / scale) + "px";
+  box.style.height = (c.sh / scale) + "px";
+  document.getElementById("cropSize").textContent = Math.round(c.sw) + " × " + Math.round(c.sh) + " 像素";
+}
+/* 恢复成整张图（#cv 与照片都还原） */
+function restoreFullImage(){
+  var img = cropState.img;
+  if(!img) return;
+  const cv = document.getElementById("cv");
+  cv.width = img.width; cv.height = img.height;
+  cv.getContext("2d").drawImage(img, 0, 0);
+  if(cv.toBlob) cv.toBlob(b => { state.photoBlob = b; }, "image/jpeg", 0.85);
+  document.getElementById("previewBox").style.display = "none";
+  document.getElementById("cropPreview").style.display = "none";
+}
+function cropReset(){
+  var img = cropState.img; if(!img) return;
+  cropState.sx = Math.round(img.width * 0.1);
+  cropState.sy = Math.round(img.height * 0.1);
+  cropState.sw = Math.round(img.width * 0.8);
+  cropState.sh = Math.round(img.height * 0.8);
+  syncCropBox();
+  restoreFullImage();
+  setStatus("已重置选框，将识别整张图。");
+}
+function cropFull(){
+  var img = cropState.img; if(!img) return;
+  cropState.sx = 0; cropState.sy = 0;
+  cropState.sw = img.width; cropState.sh = img.height;
+  syncCropBox();
+  restoreFullImage();
+  setStatus("已切换为整张图。");
+}
+function applyCrop(){
+  var img = cropState.img; if(!img) return;
+  var c = cropState;
+  c.sx = Math.max(0, Math.min(c.sx, img.width - 1));
+  c.sy = Math.max(0, Math.min(c.sy, img.height - 1));
+  c.sw = Math.max(20, Math.min(c.sw, img.width - c.sx));
+  c.sh = Math.max(20, Math.min(c.sh, img.height - c.sy));
+  /* 选区写回识别用画布 —— 两条 AI 链路都会用这一块 */
+  const cv = document.getElementById("cv");
+  cv.width = Math.round(c.sw); cv.height = Math.round(c.sh);
+  cv.getContext("2d").drawImage(img, c.sx, c.sy, c.sw, c.sh, 0, 0, c.sw, c.sh);
+  if(cv.toBlob) cv.toBlob(b => { state.photoBlob = b; }, "image/jpeg", 0.88);
+  document.getElementById("previewBox").style.display = "block";
+  var pv = document.getElementById("cropPreview");
+  var im = document.getElementById("cropPreviewImg");
+  try{ im.src = cv.toDataURL("image/jpeg", 0.7); }catch(e){}
+  pv.style.display = "flex";
+  document.getElementById("cropPreviewTip").textContent =
+    Math.round(c.sw) + "×" + Math.round(c.sh) + " 像素，识别与上传都用这一块";
+  setStatus("裁剪已应用，接下来点「AI 识别营养成分表」或「AI 识别这道菜」。");
+}
 function loadPhoto(e){
   const file = e.target.files[0]; if(!file) return;
   if(!/^image\//.test(file.type)){ setStatus("请选择图片文件（jpg / png）。"); return; }
   if(file.size > 8 * 1024 * 1024){ setStatus("图片超过 8MB，请换一张更小的。"); return; }
   const img = new Image();
   img.onload = () => {
-    const cv = document.getElementById("cv");
     const scale = Math.min(1, 1400 / Math.max(img.width, img.height));
-    cv.width = Math.round(img.width * scale); cv.height = Math.round(img.height * scale);
-    const ctx = cv.getContext("2d");
-    ctx.drawImage(img, 0, 0, cv.width, cv.height); /* 保持原图，不做灰度/二值化处理 */
+    const w = Math.round(img.width * scale), h = Math.round(img.height * scale);
+    /* 原图留一份，供裁剪框选 */
+    const src = document.createElement("canvas");
+    src.width = w; src.height = h;
+    src.getContext("2d").drawImage(img, 0, 0, w, h); /* 保持原图，不做灰度/二值化处理 */
+    cropState.img = src;
+    const cc = document.getElementById("cropCanvas");
+    cc.width = w; cc.height = h;
+    cc.getContext("2d").drawImage(src, 0, 0);
+    document.getElementById("cropWrap").style.display = "block";
+    /* 默认框住中央 80% 区域 */
+    cropState.sx = Math.round(w * 0.1); cropState.sy = Math.round(h * 0.1);
+    cropState.sw = Math.round(w * 0.8); cropState.sh = Math.round(h * 0.8);
+    syncCropBox();
+    /* 识别用画布：未裁剪时 = 原图 */
+    const cv = document.getElementById("cv");
+    cv.width = w; cv.height = h;
+    cv.getContext("2d").drawImage(src, 0, 0);
     if(cv.toBlob) cv.toBlob(b => { state.photoBlob = b || file; }, "image/jpeg", 0.85);
     else state.photoBlob = file;
-    document.getElementById("previewBox").style.display = "block";
-    setStatus("图片已就绪，点「AI 识别营养成分表」。照片会在「存入我的食物库」时上传到你的云端空间。");
+    document.getElementById("previewBox").style.display = "none";
+    document.getElementById("cropPreview").style.display = "none";
+    setStatus("图片已就绪。可拖动方框只框住要识别的区域，点「应用裁剪」后再识别；不裁剪则直接用整张图。照片会在「存入我的食物库」时上传到你的云端空间。");
   };
+  img.onerror = function(){ setStatus("这张图片打不开，请换一张试试。"); };
   img.src = URL.createObjectURL(file);
 }
 
@@ -4369,8 +4573,7 @@ async function recognizeDish(){
       loadEl = document.getElementById("dishLoading"), resEl = document.getElementById("dishResult");
   errEl.classList.add("hidden"); errEl.textContent = "";
   var cv = document.getElementById("cv");
-  var box = document.getElementById("previewBox");
-  if(!cv || !box || box.style.display === "none"){
+  if(!cv || !cv.width || !ocrHasImage()){
     errEl.textContent = "请先在上方选择或拍摄一张菜品照片。"; errEl.classList.remove("hidden"); return;
   }
   var modelId = dishModelId();
