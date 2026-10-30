@@ -5000,10 +5000,11 @@ function renderDishCal(data, thumb){
   var ingEl = document.getElementById("dishIng");
   var allEl = document.getElementById("dishAiAll");
 
-  /* 没有任何克数（模型没给）→ 只展示文字食材，不给热量 */
+  /* 没有任何克数（模型没给）→ 只展示文字食材，不给热量。
+     注意：不要把 dishState.cal 置空 —— 那会让后续 renderDish 误判为需要重建，
+     冲掉用户手动改过的菜名与编辑态。 */
   if(!hasGram || !cal.rows.length){
     box.classList.add("hidden");
-    dishState.cal = null;
     if(allEl) allEl.innerHTML = "";
     ingEl.textContent = data.ingredients.length ? ("主要食材：" + data.ingredients.map(function(x){ return x.name; }).join("、")) : "";
     return;
@@ -5244,7 +5245,11 @@ function dishToggleNameEdit(){
     dishState.name = v;
     if(dishState.data) dishState.data.dish_name = v;
     dishState.editName = false;
-    renderDish(dishState.data);
+    /* 只更新菜名显示，不重建食材行（否则会冲掉手动改过的克重与热量） */
+    var dn = document.getElementById("dishName");
+    if(dn){ dn.className = ""; dn.textContent = v; }
+    var nb = document.getElementById("dishNameEditBtn");
+    if(nb){ nb.classList.remove("on"); nb.textContent = "✎"; nb.title = "手动修改菜名"; }
     toast("菜名已改为「" + v + "」","ok");
   }else{
     dishState.editName = true;
@@ -5317,7 +5322,7 @@ function renderDish(data, thumb, fresh){
     dishState.cal = dishCalc(data.ingredients);
     dishState.name = data.dish_name;
     dishState.editRow = -1;
-    dishState.editName = false;
+    /* editName 不在这里清 —— 否则「点开菜名编辑」刚设成 true 就会被冲掉 */
   }
   renderDishCal(data, thumb);
   document.getElementById("dishResult").classList.remove("hidden");
