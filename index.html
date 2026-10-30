@@ -780,6 +780,62 @@ html[data-theme="dark"] .advice.over{color:#E9A0A0}
   .crop-size{font-size:12px}
 }
 
+/* ---------- 菜品结果手动编辑 ---------- */
+.dc-name-edit{display:flex;align-items:center;gap:8px;flex-wrap:wrap}
+.dc-pen{
+  border:1px solid var(--border);background:var(--card);border-radius:7px;
+  width:28px;height:28px;flex:none;display:grid;place-items:center;cursor:pointer;
+  color:var(--muted);font-size:12px;padding:0;line-height:1;transition:.2s;font-family:inherit;
+}
+.dc-pen:hover{border-color:var(--green);color:var(--green)}
+.dc-pen.on{background:var(--green);border-color:var(--green);color:#fff}
+.dc-name-in{
+  border:1px solid var(--green);border-radius:8px;background:var(--card);color:var(--text);
+  font-family:inherit;font-size:15px;font-weight:600;padding:7px 10px;width:min(280px,100%);
+}
+.dc-name-in:focus{outline:none}
+.dc-row-edit{
+  display:grid;grid-template-columns:minmax(0,1fr) 84px 96px;gap:8px;align-items:end;
+  padding:11px 13px;border-top:1px solid var(--line-soft);background:var(--surface-2);
+}
+.dc-row-edit .dc-h{font-size:10.5px;color:var(--muted);text-align:center;margin-bottom:4px}
+.dc-row-edit input{
+  border:1px solid var(--border);border-radius:8px;background:var(--card);color:var(--text);
+  font-family:inherit;font-size:13px;padding:8px 9px;width:100%;min-width:0;
+  font-variant-numeric:tabular-nums;
+}
+.dc-row-edit input:focus{outline:none;border-color:var(--green)}
+.dc-row-edit .dc-acts{display:flex;gap:6px;grid-column:1/-1;justify-content:flex-end;margin-top:2px}
+.dc-ico-btn{
+  border:1px solid var(--border);background:var(--card);border-radius:8px;cursor:pointer;
+  padding:7px 12px;font-size:11.5px;font-family:inherit;color:var(--text);transition:.15s;
+}
+.dc-ico-btn:hover{border-color:var(--green);color:var(--green)}
+.dc-ico-btn.primary{background:var(--green);border-color:var(--green);color:#fff;font-weight:600}
+.dc-ico-btn.primary:hover{filter:brightness(.96);color:#fff}
+.dc-ico-btn.danger{border-color:var(--brown);color:var(--brown)}
+.dc-ico-btn.danger:hover{background:var(--brown);color:#fff}
+.dc-row .via.src-manual{color:var(--orange);font-weight:600}
+.dc-edit-tip{
+  font-size:11.5px;color:var(--muted);margin-top:8px;line-height:1.7;
+  padding:8px 11px;border-radius:10px;background:var(--surface-2);
+}
+
+/* ---------- 菜品结果编辑：移动端适配 ---------- */
+@media (max-width:640px){
+  /* 名称占满一行，克重与热量并排 —— 竖排更好输入 */
+  .dc-row-edit{grid-template-columns:1fr 1fr;gap:8px}
+  .dc-row-edit > div:first-child{grid-column:1/-1}
+  .dc-row-edit .dc-acts{grid-column:1/-1;justify-content:stretch}
+  .dc-row-edit .dc-acts .dc-ico-btn{flex:1;text-align:center;min-height:40px}
+  /* 触摸目标放大到 36px 以上 */
+  .dc-pen{width:36px;height:36px;font-size:14px;border-radius:9px}
+  .dc-ico-btn{padding:10px 14px;font-size:12.5px}
+  .dc-name-in{width:100%;font-size:15px;padding:9px 11px}
+  .dc-row .g{font-size:12px}
+  .dc-row .k{min-width:58px}
+}
+
 /* ---------- 表单分组 ---------- */
 .form-group{margin-bottom:18px}
 .form-group:last-child{margin-bottom:0}
@@ -1706,7 +1762,10 @@ html.intro-done .wrap{animation:contentIn .6s ease both}
         <div class="dish-head">
           <canvas id="dishThumb" width="120" height="120"></canvas>
           <div class="dish-title">
-            <div id="dishName"></div>
+            <div class="dc-name-edit">
+              <div id="dishName"></div>
+              <button class="dc-pen" type="button" id="dishNameEditBtn" onclick="dishToggleNameEdit()" title="手动修改菜名" aria-label="修改菜名">✎</button>
+            </div>
             <div id="dishUncertain" class="note"></div>
           </div>
         </div>
@@ -4479,7 +4538,7 @@ var DISH_PROMPT = "请识别图片中的菜品，并目测每种食材在整盘�
   + "\"ingredients\":[{\"name\":\"食材名\",\"grams\":估算克数}],\"uncertain\":false}"
   + "。要求：dish_name 用中文；ingredients 只列图片里能认出的主要食材（3-8 项），grams 为整数克数、按常见份量目测；"
   + "判断不出具体菜名时给出最接近的类别并把 uncertain 设为 true；不要编造图片中看不到的食材。";
-var dishState = { name: "", raw: "", cal: null, data: null };
+var dishState = { name: "", raw: "", cal: null, data: null, editRow: -1, editName: false };
 var dishModelErr = null;
 /* AI 补查营养值的结果缓存：key = 归一化食材名 */
 var dishAI = {};
@@ -4717,7 +4776,10 @@ function dishCalc(ings){
     if(m.src === "ai") total.aiCount++;
     rows.push({
       name: it.name, key: key, grams: g, matched: m.nut.name, via: m.via, score: m.score, src: m.src,
-      kcal: kcal, p: m.nut.p * r, f: m.nut.f * r, c: m.nut.c * r, ok: true
+      kcal: kcal, p: m.nut.p * r, f: m.nut.f * r, c: m.nut.c * r, ok: true,
+      per100: m.nut,          /* 每 100g 营养值：改克重时按它换算 */
+      manual: false,          /* 热量是否被手动锁定 */
+      manualKcal: null        /* 手动填的热量值 */
     });
     total.grams += g; total.kcal += kcal;
     total.p += m.nut.p * r; total.f += m.nut.f * r; total.c += m.nut.c * r;
@@ -4802,7 +4864,26 @@ async function dishChatText(messages){
     return await callOnce();
   }
 }
-function dishRender(){ if(dishState.data) renderDishCal(dishState.data); }
+/* 重建食材行：AI 估值被采纳/撤销后要重新匹配，
+   但「手动锁定热量」的行要保留用户填的值 */
+function rebuildDishRows(){
+  if(!dishState.data) return;
+  var old = (dishState.cal && dishState.cal.rows) || [];
+  var keep = {};
+  old.forEach(function(r){ if(r.manual) keep[r.key] = r; });
+  var cal = dishCalc(dishState.data.ingredients);
+  cal.rows.forEach(function(r){
+    var o = keep[r.key];
+    if(o){ r.manual = true; r.manualKcal = o.manualKcal; r.kcal = o.kcal; }
+  });
+  dishState.cal = cal;
+  recalcDishTotal();
+}
+function dishRender(){
+  if(!dishState.data) return;
+  rebuildDishRows();
+  renderDishCal(dishState.data);
+}
 async function dishAIQuery(idx){
   var cal = dishState.cal;
   var row = cal && cal.rows[idx];
@@ -4906,8 +4987,13 @@ async function dishAIFillAll(){
 }
 
 function renderDishCal(data, thumb){
-  var cal = dishCalc(data.ingredients);
-  dishState.cal = cal;
+  /* 只渲染，不重建行 —— 否则用户手动改的食材/克重/热量会被 dishCalc 冲掉。
+     需要重建时显式调 rebuildDishRows()。 */
+  var cal = dishState.cal;
+  if(!cal){
+    cal = dishCalc(data.ingredients);
+    dishState.cal = cal;
+  }
   dishState.data = data;
   var hasGram = cal.rows.some(function(r){ return r.grams > 0; });
   var box = document.getElementById("dishCal");
@@ -4933,6 +5019,11 @@ function renderDishCal(data, thumb){
 
   var rows = '';
   cal.rows.forEach(function(r, i){
+    /* 编辑态：这一行换成输入框 */
+    if(dishState.editRow === i){
+      rows += dishEditRowHtml(r, i);
+      return;
+    }
     if(!r.ok){
       var a0 = dishAI[r.key] || null;
       var chip;
@@ -4945,18 +5036,23 @@ function renderDishCal(data, thumb){
       }
       rows += '<div class="dc-row miss"><span class="n">' + dishEsc(r.name)
         + '</span><span class="g">' + (r.grams ? "约 " + r.grams + "g" : "份量未知")
-        + '</span>' + chip + '</div>';
+        + '</span>' + chip
+        + '<button class="dc-pen" type="button" onclick="dishEditRow(' + i + ')" title="手动修改" aria-label="修改这一项">✎</button>'
+        + '</div>';
       rows += dishAiPanel(r, i, a0);
       return;
     }
     var tag = "";
-    if(r.src === "custom") tag = '<span class="via src-custom">我的库</span>';
+    if(r.manual) tag = '<span class="via src-manual">手动</span>';
+    else if(r.src === "custom") tag = '<span class="via src-custom">我的库</span>';
     else if(r.src === "ai") tag = '<span class="via src-ai">AI 估值</span>';
     else if(r.via && r.score < 96) tag = '<span class="via">≈' + dishEsc(r.via) + '</span>';
     var aiA = r.src === "ai" ? dishAI[r.key] : null;
     var undo = (aiA && aiA.adopted) ? '<button class="dc-undo" type="button" onclick="dishAIAdopt(' + i + ')" title="取消采用这个 AI 估值">撤销</button>' : '';
     rows += '<div class="dc-row"><span class="n">' + dishEsc(r.name) + tag + undo
-      + '</span><span class="g">约 ' + r.grams + 'g</span><span class="k">' + Math.round(r.kcal) + ' 千卡</span></div>';
+      + '</span><span class="g">约 ' + r.grams + 'g</span><span class="k">' + Math.round(r.kcal) + ' 千卡</span>'
+      + '<button class="dc-pen" type="button" onclick="dishEditRow(' + i + ')" title="手动修改" aria-label="修改这一项">✎</button>'
+      + '</div>';
   });
   if(t.unknown){
     rows += '<div class="dc-row total"><span class="n">已匹配 ' + (cal.rows.length - t.unknown) + '/' + cal.rows.length + ' 种食材</span>'
@@ -4966,6 +5062,8 @@ function renderDishCal(data, thumb){
       + '<span class="k">' + Math.round(t.kcal) + ' 千卡</span></div>';
   }
   if(!t.grams){ rows = '<div class="dc-row miss"><span class="n">食材都没能匹配到本地食物库</span><span class="g"></span><span class="k">无法估算</span></div>'; }
+  rows += '<div class="dc-edit-tip">点每行右侧的 ✎ 可手动修改食材名、克重与热量；'
+    + '改动后总热量与三大营养素会立即重算，确认无误再加入今日记录。</div>';
   document.getElementById("dishIngRows").innerHTML = rows;
 
   /* 一键补查入口 */
@@ -4993,6 +5091,169 @@ function renderDishCal(data, thumb){
   document.getElementById("dishAddBtn").disabled = !t.grams;
   box.classList.remove("hidden");
 }
+/* ================= 菜品识别结果：手动编辑 =================
+   可改：菜名、食材名、克重、热量；可删掉某一项。
+   规则：
+     · 改克重 → 按该食材的每 100g 营养值重新换算热量与三大营养素
+     · 改热量 → 手动锁定该行热量（标「手动」），之后改克重不再覆盖它
+     · 改食材名 → 重新在食物库 / 我的食物库里匹配，命中则按新食物换算
+     · 任何改动都会立即重算汇总热量与三大营养素
+   ------------------------------------------------------------ */
+
+/* 编辑态的一行 */
+function dishEditRowHtml(r, i){
+  return '<div class="dc-row-edit">'
+    + '<div><div class="dc-h" style="text-align:left">食材名</div>'
+    +   '<input type="text" id="dishInName' + i + '" value="' + dishEsc(r.name) + '"></div>'
+    + '<div><div class="dc-h">克重 g</div>'
+    +   '<input type="number" id="dishInGram' + i + '" min="1" step="1" value="' + Math.round(r.grams) + '"></div>'
+    + '<div><div class="dc-h">热量 千卡</div>'
+    +   '<input type="number" id="dishInKcal' + i + '" min="0" step="1" value="' + Math.round(r.kcal) + '"></div>'
+    + '<div class="dc-acts">'
+    +   '<button class="dc-ico-btn danger" type="button" onclick="dishDeleteRow(' + i + ')">删除</button>'
+    +   '<button class="dc-ico-btn" type="button" onclick="dishCancelEdit()">取消</button>'
+    +   '<button class="dc-ico-btn primary" type="button" onclick="dishSaveRow(' + i + ')">保存</button>'
+    + '</div></div>';
+}
+
+/* 按当前各行重算汇总 */
+function recalcDishTotal(){
+  var cal = dishState.cal;
+  if(!cal) return;
+  var t = { grams:0, kcal:0, p:0, f:0, c:0, unknown:0, gramsAll:0, aiCount:0 };
+  cal.rows.forEach(function(r){
+    t.gramsAll += r.grams;
+    if(!r.ok){ t.unknown++; return; }
+    t.grams += r.grams;
+    t.kcal += r.kcal;
+    t.p += r.p; t.f += r.f; t.c += r.c;
+    if(r.src === "ai") t.aiCount++;
+  });
+  cal.total = t;
+}
+
+/* 进入编辑态 */
+function dishEditRow(i){
+  var cal = dishState.cal;
+  if(!cal || !cal.rows[i]) return;
+  dishState.editRow = i;
+  renderDishCal(dishState.data);
+  var el = document.getElementById("dishInName" + i);
+  if(el){ try{ el.focus(); el.select(); }catch(e){} }
+}
+
+/* 取消编辑 */
+function dishCancelEdit(){
+  dishState.editRow = -1;
+  renderDishCal(dishState.data);
+}
+
+/* 保存某一行的修改 */
+function dishSaveRow(i){
+  var cal = dishState.cal;
+  if(!cal || !cal.rows[i]) return;
+  var r = cal.rows[i];
+  var nEl = document.getElementById("dishInName" + i);
+  var gEl = document.getElementById("dishInGram" + i);
+  var kEl = document.getElementById("dishInKcal" + i);
+  var newName = nEl ? String(nEl.value || "").trim() : r.name;
+  var newG = gEl ? parseFloat(gEl.value) : r.grams;
+  var newK = kEl ? parseFloat(kEl.value) : r.kcal;
+
+  if(!newName){ toast("食材名不能为空","err"); return; }
+  if(!isFinite(newG) || newG <= 0){ toast("请填写正确的克重","err"); return; }
+  if(isFinite(newK) && newK < 0){ toast("热量不能为负数","err"); return; }
+
+  var nameChanged = newName !== r.name;
+  var gramsChanged = Math.abs(newG - r.grams) > 0.001;
+  var kcalChanged = isFinite(newK) && Math.abs(newK - r.kcal) > 0.001;
+
+  if(nameChanged){
+    /* 改名 → 重新匹配食物库 */
+    var m = dishResolve(newName);
+    r.name = newName;
+    r.key = dishKey(newName);
+    if(m){
+      r.matched = m.nut.name; r.via = m.via; r.score = m.score; r.src = m.src;
+      r.per100 = m.nut;
+      r.ok = true;
+      r.grams = newG;
+      var rr = newG / 100;
+      r.kcal = m.nut.kcal * rr; r.p = m.nut.p * rr; r.f = m.nut.f * rr; r.c = m.nut.c * rr;
+      r.manual = false; r.manualKcal = null;
+    }else{
+      /* 食物库里没有 → 用用户手填的热量 */
+      r.ok = true;
+      r.per100 = null;
+      r.grams = newG;
+      r.kcal = isFinite(newK) ? newK : 0;
+      r.manual = true; r.manualKcal = r.kcal;
+      r.p = r.p || 0; r.f = r.f || 0; r.c = r.c || 0;
+      toast("食物库里没有「" + newName + "」，已按你填的热量计入","ok");
+    }
+  }else{
+    r.grams = newG;
+    if(kcalChanged){
+      /* 手填热量 → 锁定，三大营养素按每 100g 数据尽量同步 */
+      r.manual = true; r.manualKcal = newK;
+      r.kcal = newK;
+      if(r.per100){
+        var base = r.per100.kcal * newG / 100;
+        var ratio = base > 0 ? newK / base : 1;
+        r.p = r.per100.p * newG / 100 * ratio;
+        r.f = r.per100.f * newG / 100 * ratio;
+        r.c = r.per100.c * newG / 100 * ratio;
+      }
+    }else if(gramsChanged){
+      /* 只改克重 → 按每 100g 重算；若之前手动锁定了热量则保持不变 */
+      if(r.per100 && !r.manual){
+        var r2 = newG / 100;
+        r.kcal = r.per100.kcal * r2; r.p = r.per100.p * r2; r.f = r.per100.f * r2; r.c = r.per100.c * r2;
+      }else if(r.per100){
+        var r3 = newG / 100;
+        r.p = r.per100.p * r3; r.f = r.per100.f * r3; r.c = r.per100.c * r3;
+      }
+    }
+  }
+
+  recalcDishTotal();
+  dishState.editRow = -1;
+  renderDishCal(dishState.data);   /* 不重建行，保留刚才的编辑 */
+  toast("已更新：" + r.name + " " + Math.round(r.grams) + "g · " + Math.round(r.kcal) + " 千卡","ok");
+}
+
+/* 删除某个食材 */
+function dishDeleteRow(i){
+  var cal = dishState.cal;
+  if(!cal || !cal.rows[i]) return;
+  var nm = cal.rows[i].name;
+  if(!confirm("从这道菜里去掉「" + nm + "」？")) return;
+  cal.rows.splice(i, 1);
+  recalcDishTotal();
+  dishState.editRow = -1;
+  renderDishCal(dishState.data);
+  toast("已去掉「" + nm + "」","ok");
+}
+
+/* 菜名编辑开关 */
+function dishToggleNameEdit(){
+  if(dishState.editName){
+    var el = document.getElementById("dishNameIn");
+    var v = el ? String(el.value || "").trim() : "";
+    if(!v){ toast("菜名不能为空","err"); return; }
+    dishState.name = v;
+    if(dishState.data) dishState.data.dish_name = v;
+    dishState.editName = false;
+    renderDish(dishState.data);
+    toast("菜名已改为「" + v + "」","ok");
+  }else{
+    dishState.editName = true;
+    renderDish(dishState.data);
+    var inp = document.getElementById("dishNameIn");
+    if(inp){ try{ inp.focus(); inp.select(); }catch(e){} }
+  }
+}
+
 /* 未匹配项下方的 AI 结果面板 */
 function dishAiPanel(row, idx, a){
   if(!a) return "";
@@ -5021,8 +5282,22 @@ function dishAiPanel(row, idx, a){
     + '</div>';
   return html;
 }
-function renderDish(data, thumb){
-  document.getElementById("dishName").textContent = data.dish_name;
+function renderDish(data, thumb, fresh){
+  var dn = document.getElementById("dishName");
+  if(dishState.editName){
+    dn.className = "dc-name-in";
+    dn.innerHTML = '<input type="text" id="dishNameIn" value="' + dishEsc(dishState.name || data.dish_name)
+      + '" style="width:100%;border:none;background:transparent;font:inherit;color:inherit;outline:none">';
+  }else{
+    dn.className = "";
+    dn.textContent = dishState.name || data.dish_name;
+  }
+  var nb = document.getElementById("dishNameEditBtn");
+  if(nb){
+    nb.classList.toggle("on", !!dishState.editName);
+    nb.textContent = dishState.editName ? "✓" : "✎";
+    nb.title = dishState.editName ? "保存菜名" : "手动修改菜名";
+  }
   var un = document.getElementById("dishUncertain");
   un.textContent = data.uncertain ? "模型标记：该结果存在明显不确定性，仅供参考" : "";
   un.style.color = data.uncertain ? "var(--orange)" : "";
@@ -5036,8 +5311,15 @@ function renderDish(data, thumb){
     c.fillStyle = "#fff"; c.fillRect(0, 0, th.width, th.height);
     c.drawImage(thumb, (th.width - dw) / 2, (th.height - dh) / 2, dw, dh);
   }
+  /* fresh=true（新识别结果）才重建食材行与菜名；
+     改菜名等场景传 false，保留用户已经手动改过的行。 */
+  if(fresh || !dishState.cal){
+    dishState.cal = dishCalc(data.ingredients);
+    dishState.name = data.dish_name;
+    dishState.editRow = -1;
+    dishState.editName = false;
+  }
   renderDishCal(data, thumb);
-  dishState.name = data.dish_name;
   document.getElementById("dishResult").classList.remove("hidden");
 }
 function fillDishName(){
@@ -5048,14 +5330,15 @@ function fillDishName(){
 }
 async function addDishToLog(){
   var cal = dishState.cal, btn = document.getElementById("dishAddBtn");
+  recalcDishTotal();
   if(!cal || !cal.total.grams){ toast("没有可用的估算数据","err"); return; }
   if(!state.user){ toast("登录后才能保存记录","err"); return; }
   var g = Math.round(cal.total.grams);
   if(btn){ btn.disabled = true; btn.textContent = "保存中…"; }
   try{
     var r = await cloud.database.from("food_logs").insert({
-      log_date: today,
-      name: dishState.name + "（AI 估算）",
+      log_date: viewDate,
+      name: (dishState.name || "AI 识别菜品") + "（AI 估算）",
       grams: g,
       kcal: cal.total.kcal / g * 100,
       protein: cal.total.p / g * 100,
@@ -5129,7 +5412,7 @@ async function recognizeDish(){
     }
     loadEl.textContent = "AI 正在看图识别并估算份量，通常需要几秒…";
     dishState.raw = out;
-    renderDish(parseDishJson(out), small);
+    renderDish(parseDishJson(out), small, true);
   }catch(e){
     resEl.classList.add("hidden");
     errEl.textContent = dishErrText(e);
